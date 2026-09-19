@@ -1,1 +1,511 @@
 cd /d E:\Projects\core-up
+
+# CoreUp – Docker & Backend Commands
+
+## 1. Clone project lần đầu
+
+### Windows
+
+```cmd
+git clone https://github.com/let-me-isekai-u/core-up.git
+cd core-up
+
+dotnet tool restore
+dotnet restore CoreUp.sln
+```
+
+### macOS
+
+```bash
+git clone https://github.com/let-me-isekai-u/core-up.git
+cd core-up
+
+dotnet tool restore
+dotnet restore CoreUp.sln
+```
+
+---
+
+## 2. Tạo file `.env`
+
+`.env` không được push lên GitHub nên khi clone sang máy mới cần tự tạo lại.
+
+```env
+POSTGRES_DB=coreup_db
+POSTGRES_USER=coreup_user
+POSTGRES_PASSWORD=coreup_dev_password
+POSTGRES_PORT=5432
+```
+
+---
+
+# Docker Compose
+
+## 3. Khởi động Docker services
+
+> Docker Desktop phải được mở trước.
+
+```bash
+docker compose up -d
+```
+
+`-d` = chạy container ở background.
+
+Kiểm tra:
+
+```bash
+docker compose ps
+```
+
+PostgreSQL hoạt động bình thường khi trạng thái là:
+
+```text
+Up ... (healthy)
+```
+
+---
+
+## 4. Dừng Docker services
+
+Dừng container nhưng không xóa:
+
+```bash
+docker compose stop
+```
+
+Chạy lại:
+
+```bash
+docker compose start
+```
+
+---
+
+## 5. Restart
+
+Restart toàn bộ services:
+
+```bash
+docker compose restart
+```
+
+Restart riêng PostgreSQL:
+
+```bash
+docker compose restart postgres
+```
+
+---
+
+## 6. Down
+
+Dừng và xóa container + network nhưng **GIỮ database volume**:
+
+```bash
+docker compose down
+```
+
+Dựng lại:
+
+```bash
+docker compose up -d
+```
+
+Routine reset container thường dùng:
+
+```bash
+docker compose down
+docker compose up -d
+```
+
+---
+
+# ⚠️ CẢNH BÁO
+
+## 7. Xóa cả database volume
+
+```bash
+docker compose down -v
+```
+
+`-v` sẽ xóa Docker volume.
+
+Với CoreUp, điều này có thể xóa toàn bộ database local:
+
+```text
+core-up_coreup_postgres_data
+```
+
+**Chỉ sử dụng khi thực sự muốn reset database từ đầu.**
+
+---
+
+# PostgreSQL
+
+## 8. Truy cập PostgreSQL
+
+```bash
+docker exec -it coreup-postgres psql -U coreup_user -d coreup_db
+```
+
+Khi vào thành công:
+
+```text
+coreup_db=#
+```
+
+Kiểm tra version:
+
+```sql
+SELECT version();
+```
+
+Thoát:
+
+```text
+\q
+```
+
+---
+
+## 9. Xem log PostgreSQL
+
+```bash
+docker compose logs postgres
+```
+
+Theo dõi realtime:
+
+```bash
+docker compose logs -f postgres
+```
+
+Hoặc:
+
+```bash
+docker logs -f coreup-postgres
+```
+
+Thoát chế độ follow:
+
+```text
+Ctrl + C
+```
+
+---
+
+# Docker status
+
+## 10. Xem service của project
+
+```bash
+docker compose ps
+```
+
+## 11. Xem container đang chạy
+
+```bash
+docker ps
+```
+
+## 12. Xem cả container đã dừng
+
+```bash
+docker ps -a
+```
+
+## 13. Xem Docker images
+
+```bash
+docker images
+```
+
+## 14. Xem Docker volumes
+
+```bash
+docker volume ls
+```
+
+---
+
+# Docker logs
+
+## 15. Xem toàn bộ logs
+
+```bash
+docker compose logs
+```
+
+## 16. Follow logs realtime
+
+```bash
+docker compose logs -f
+```
+
+---
+
+# Docker Images
+
+## 17. Pull/update image theo Compose
+
+```bash
+docker compose pull
+```
+
+Sau đó:
+
+```bash
+docker compose up -d
+```
+
+## 18. Pull riêng PostgreSQL
+
+```bash
+docker pull postgres:17
+```
+
+---
+
+# ASP.NET Core
+
+## 19. Build solution
+
+```bash
+dotnet build CoreUp.sln
+```
+
+---
+
+## 20. Chạy tests
+
+```bash
+dotnet test CoreUp.sln
+```
+
+---
+
+## 21. Chạy API bình thường
+
+```bash
+dotnet run --project src/CoreUp.Api
+```
+
+Dừng server:
+
+```text
+Ctrl + C
+```
+
+Nếu CMD đang ở chế độ select:
+
+```text
+Esc
+Ctrl + C
+```
+
+---
+
+## 22. Development / Hot Reload
+
+Khuyến nghị sử dụng khi đang code:
+
+```bash
+dotnet watch --project src/CoreUp.Api
+```
+
+Khi sửa code, ASP.NET sẽ tự rebuild/hot reload khi có thể.
+
+Không cần restart PostgreSQL khi chỉ sửa code C#.
+
+---
+
+# Entity Framework Core
+
+## 23. Restore EF CLI sau khi clone
+
+```bash
+dotnet tool restore
+```
+
+Kiểm tra:
+
+```bash
+dotnet tool run dotnet-ef --version
+```
+
+---
+
+## 24. Xem EF packages
+
+```bash
+dotnet list src/CoreUp.Infrastructure/CoreUp.Infrastructure.csproj package
+```
+
+---
+
+# Git
+
+## 25. Kiểm tra trạng thái
+
+```bash
+git status
+```
+
+## 26. Pull code mới
+
+```bash
+git pull
+```
+
+## 27. Stage
+
+```bash
+git add .
+```
+
+## 28. Commit
+
+```bash
+git commit -m "feat: description"
+```
+
+## 29. Push
+
+```bash
+git push
+```
+
+---
+
+# Routine bắt đầu một ngày code
+
+```bash
+git pull
+
+docker compose up -d
+docker compose ps
+
+dotnet tool restore
+dotnet restore CoreUp.sln
+
+dotnet watch --project src/CoreUp.Api
+```
+
+---
+
+# Routine kết thúc buổi code
+
+Kiểm tra Git:
+
+```bash
+git status
+```
+
+Commit nếu có thay đổi:
+
+```bash
+git add .
+git commit -m "feat: description"
+git push
+```
+
+Tắt backend bằng:
+
+```text
+Ctrl + C
+```
+
+Dừng Docker:
+
+```bash
+docker compose down
+```
+
+Sau đó có thể tắt Docker Desktop để giải phóng RAM.
+
+---
+
+# Workflow trên macOS
+
+Backend:
+
+```bash
+cd ~/Projects/core-up
+
+docker compose up -d
+docker compose ps
+
+dotnet tool restore
+dotnet restore CoreUp.sln
+
+dotnet watch --project src/CoreUp.Api
+```
+
+Flutter chạy ở project riêng:
+
+```bash
+cd ~/Projects/core-up-mobile
+flutter run
+```
+
+Kiến trúc khi development:
+
+```text
+Flutter
+   │
+   │ REST API
+   ▼
+ASP.NET Core
+   │
+   ▼
+PostgreSQL
+   │
+ Docker
+```
+
+---
+
+# Các lệnh quan trọng nhất cần nhớ
+
+```bash
+# Bật
+docker compose up -d
+
+# Kiểm tra
+docker compose ps
+
+# Restart
+docker compose restart
+
+# Dừng tạm
+docker compose stop
+
+# Chạy lại
+docker compose start
+
+# Xóa container nhưng giữ DB
+docker compose down
+
+# ⚠️ Xóa container + DB volume
+docker compose down -v
+
+# Log
+docker compose logs -f
+
+# Chạy backend với hot reload
+dotnet watch --project src/CoreUp.Api
+```
+
+## Ghi nhớ nhanh
+
+```text
+up -d     = bật
+ps        = xem trạng thái
+stop      = dừng
+start     = chạy lại
+restart   = restart
+down      = dọn container, giữ DB
+down -v   = xóa cả DB local ⚠️
+logs -f   = xem log realtime
+dotnet watch = hot reload backend
+```
