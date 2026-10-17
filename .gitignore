@@ -501,8 +501,6 @@ $RECYCLE.BIN/
 .env.*
 !.env.example
 !.env.*.example
-.coreup-docx-render-*/
-.coreup-slide-build/
 /output/
 
 # Android source manifest is not .NET Debug build output.
@@ -511,3 +509,7 @@ $RECYCLE.BIN/
 
 # Project documentation is archived outside this repository.
 /docs/
+/.coreup-docx-render-v1/
+/.coreup-docx-render-v2/
+/.coreup-docx-render-v3/
+/.coreup-slide-build/
