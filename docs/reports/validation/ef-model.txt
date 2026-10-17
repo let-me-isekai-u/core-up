@@ -1,0 +1,6 @@
+$ ASPNETCORE_ENVIRONMENT=Development dotnet tool run dotnet-ef migrations has-pending-model-changes --project src/CoreUp.Infrastructure --startup-project src/CoreUp.Api
+Build started...
+Build succeeded.
+No changes have been made to the model since the last migration.
+
+EXIT=0

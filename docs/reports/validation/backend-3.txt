@@ -1,0 +1,7 @@
+$ dotnet tool run dotnet-ef migrations has-pending-model-changes --project src/CoreUp.Infrastructure --startup-project src/CoreUp.Api -- --environment Development
+Build started...
+Build succeeded.
+Specify --help for a list of available options and commands.
+Unrecognized option '--environment'
+
+EXIT=1

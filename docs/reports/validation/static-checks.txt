@@ -1,0 +1,6 @@
+STRUCTURE PASS docs/diagrams/architecture-current.mmd
+STRUCTURE PASS docs/diagrams/domain-classes.mmd
+STRUCTURE PASS docs/diagrams/erd-current.mmd
+STRUCTURE PASS docs/diagrams/use-case-current.puml
+ASSET REFERENCES PASS
+Structural checks only; no renderer available.

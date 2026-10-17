@@ -1,0 +1,7 @@
+$ dotnet test CoreUp.sln --no-build
+Test run for /Users/nhatanhly/core-up/tests/CoreUp.Tests/bin/Debug/net10.0/CoreUp.Tests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     8, Skipped:     0, Total:     8, Duration: 15 ms - CoreUp.Tests.dll (net10.0)
+
+EXIT=0

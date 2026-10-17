@@ -1,0 +1,1591 @@
+{
+  "openapi": "3.0.4",
+  "info": {
+    "title": "CoreUp API",
+    "version": "v1"
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "CoreUp.Api"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/api/exercises": {
+      "get": {
+        "tags": [
+          "Exercises"
+        ],
+        "parameters": [
+          {
+            "name": "difficulty",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/FitnessLevel"
+            }
+          },
+          {
+            "name": "muscleGroup",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExerciseResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExerciseResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ExerciseResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/exercises/{id}": {
+      "get": {
+        "tags": [
+          "Exercises"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExerciseResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/profile": {
+      "get": {
+        "tags": [
+          "Profile"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Profile"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Profile"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProfileRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/progress/summary": {
+      "get": {
+        "tags": [
+          "Progress"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressSummaryResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressSummaryResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgressSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/weight-records": {
+      "get": {
+        "tags": [
+          "WeightRecords"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeightRecordResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeightRecordResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeightRecordResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "WeightRecords"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWeightRecordRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWeightRecordRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddWeightRecordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeightRecordResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeightRecordResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeightRecordResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-plans": {
+      "get": {
+        "tags": [
+          "WorkoutPlans"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkoutPlanSummaryResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkoutPlanSummaryResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkoutPlanSummaryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-plans/active": {
+      "get": {
+        "tags": [
+          "WorkoutPlans"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-plans/{id}": {
+      "get": {
+        "tags": [
+          "WorkoutPlans"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-plans/generate": {
+      "post": {
+        "tags": [
+          "WorkoutPlans"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPlanResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-sessions/start": {
+      "post": {
+        "tags": [
+          "WorkoutSessions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartWorkoutRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartWorkoutRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/StartWorkoutRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-sessions/{id}": {
+      "get": {
+        "tags": [
+          "WorkoutSessions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-sessions/{sessionId}/exercises/{sessionExerciseId}": {
+      "put": {
+        "tags": [
+          "WorkoutSessions"
+        ],
+        "parameters": [
+          {
+            "name": "sessionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "sessionExerciseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkoutExerciseRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkoutExerciseRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateWorkoutExerciseRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-sessions/{id}/complete": {
+      "post": {
+        "tags": [
+          "WorkoutSessions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-sessions/{id}/cancel": {
+      "post": {
+        "tags": [
+          "WorkoutSessions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutSessionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/workout-sessions/history": {
+      "get": {
+        "tags": [
+          "WorkoutSessions"
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 1
+            }
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkoutHistoryResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkoutHistoryResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WorkoutHistoryResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddWeightRecordRequest": {
+        "type": "object",
+        "properties": {
+          "weightKg": {
+            "maximum": 300,
+            "minimum": 30,
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string",
+            "nullable": true
+          },
+          "accessToken": {
+            "type": "string",
+            "nullable": true
+          },
+          "needsProfile": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "BmiCategory": {
+        "enum": [
+          "Underweight",
+          "Normal",
+          "Overweight",
+          "Obese"
+        ],
+        "type": "string"
+      },
+      "ExerciseResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "slug": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "instructions": {
+            "type": "string",
+            "nullable": true
+          },
+          "muscleGroup": {
+            "type": "string",
+            "nullable": true
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/FitnessLevel"
+          },
+          "exerciseType": {
+            "$ref": "#/components/schemas/ExerciseType"
+          },
+          "defaultSets": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "defaultReps": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "defaultDurationSeconds": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "defaultRestSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "imageUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "ExerciseType": {
+        "enum": [
+          "Repetition",
+          "Duration"
+        ],
+        "type": "string"
+      },
+      "FitnessGoal": {
+        "enum": [
+          "LoseWeight",
+          "Maintain",
+          "BuildMuscle"
+        ],
+        "type": "string"
+      },
+      "FitnessLevel": {
+        "enum": [
+          "Beginner",
+          "Intermediate",
+          "Advanced"
+        ],
+        "type": "string"
+      },
+      "Gender": {
+        "enum": [
+          "Male",
+          "Female",
+          "Other"
+        ],
+        "type": "string"
+      },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "minLength": 1,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileRequest": {
+        "required": [
+          "fullName"
+        ],
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "maxLength": 150,
+            "minLength": 1,
+            "type": "string"
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "gender": {
+            "$ref": "#/components/schemas/Gender"
+          },
+          "heightCm": {
+            "maximum": 250,
+            "minimum": 100,
+            "type": "number",
+            "format": "double"
+          },
+          "weightKg": {
+            "maximum": 300,
+            "minimum": 30,
+            "type": "number",
+            "format": "double"
+          },
+          "targetWeightKg": {
+            "maximum": 300,
+            "minimum": 30,
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "fitnessLevel": {
+            "$ref": "#/components/schemas/FitnessLevel"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/FitnessGoal"
+          },
+          "trainingDaysPerWeek": {
+            "maximum": 7,
+            "minimum": 1,
+            "type": "integer",
+            "format": "int32"
+          },
+          "preferredWorkoutDurationMinutes": {
+            "maximum": 180,
+            "minimum": 10,
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProfileResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "fullName": {
+            "type": "string",
+            "nullable": true
+          },
+          "dateOfBirth": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "gender": {
+            "$ref": "#/components/schemas/Gender"
+          },
+          "heightCm": {
+            "type": "number",
+            "format": "double"
+          },
+          "weightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "targetWeightKg": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "fitnessLevel": {
+            "$ref": "#/components/schemas/FitnessLevel"
+          },
+          "goal": {
+            "$ref": "#/components/schemas/FitnessGoal"
+          },
+          "trainingDaysPerWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "preferredWorkoutDurationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bmi": {
+            "type": "number",
+            "format": "double"
+          },
+          "bmiCategory": {
+            "$ref": "#/components/schemas/BmiCategory"
+          },
+          "generatedPlan": {
+            "$ref": "#/components/schemas/WorkoutPlanSummaryResponse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "ProgressSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "currentWeightKg": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "targetWeightKg": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "totalWorkouts": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "workoutsThisWeek": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalTrainingMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "currentStreakDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "weightHistory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WeightHistoryPoint"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "RegisterRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "minLength": 1,
+            "type": "string",
+            "format": "email"
+          },
+          "password": {
+            "minLength": 8,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "StartWorkoutRequest": {
+        "type": "object",
+        "properties": {
+          "workoutPlanId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "UpdateWorkoutExerciseRequest": {
+        "type": "object",
+        "properties": {
+          "completedSets": {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedReps": {
+            "maximum": 10000,
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedDurationSeconds": {
+            "maximum": 86400,
+            "minimum": 0,
+            "type": "integer",
+            "format": "int32"
+          },
+          "isCompleted": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeightHistoryPoint": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "weightKg": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeightRecordResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "weightKg": {
+            "type": "number",
+            "format": "double"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workoutName": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedExercises": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalExercises": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedSets": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalReps": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutPlanExerciseResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "exercise": {
+            "$ref": "#/components/schemas/ExerciseResponse"
+          },
+          "sets": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reps": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "restSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutPlanResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "goal": {
+            "$ref": "#/components/schemas/FitnessGoal"
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/FitnessLevel"
+          },
+          "estimatedDurationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isGenerated": {
+            "type": "boolean"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutPlanExerciseResponse"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutPlanSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "nullable": true
+          },
+          "goal": {
+            "$ref": "#/components/schemas/FitnessGoal"
+          },
+          "difficulty": {
+            "$ref": "#/components/schemas/FitnessLevel"
+          },
+          "estimatedDurationMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isGenerated": {
+            "type": "boolean"
+          },
+          "exerciseCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutSessionExerciseResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "exercise": {
+            "$ref": "#/components/schemas/ExerciseResponse"
+          },
+          "targetSets": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedSets": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targetReps": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "completedReps": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "targetDurationSeconds": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "completedDurationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "restSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isCompleted": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutSessionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "workoutPlanId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "workoutName": {
+            "type": "string",
+            "nullable": true
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/WorkoutSessionStatus"
+          },
+          "durationSeconds": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalExercises": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedExercises": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalSets": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "completedSets": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalReps": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "exercises": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutSessionExerciseResponse"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "WorkoutSessionStatus": {
+        "enum": [
+          "InProgress",
+          "Completed",
+          "Cancelled"
+        ],
+        "type": "string"
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "Enter the JWT access token.",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": [ ]
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "CoreUp.Api"
+    },
+    {
+      "name": "Exercises"
+    },
+    {
+      "name": "Profile"
+    },
+    {
+      "name": "Progress"
+    },
+    {
+      "name": "WeightRecords"
+    },
+    {
+      "name": "WorkoutPlans"
+    },
+    {
+      "name": "WorkoutSessions"
+    }
+  ]
+}

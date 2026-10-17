@@ -1,0 +1,110 @@
+erDiagram
+    users {
+        Guid Id PK
+        string Email
+        string PasswordHash
+        DateTime CreatedAt
+        DateTime UpdatedAt "nullable"
+    }
+    user_profiles {
+        Guid Id PK
+        Guid UserId FK
+        string FullName
+        DateOnly DateOfBirth "nullable"
+        Gender Gender "nullable"
+        decimal HeightCm
+        decimal WeightKg
+        decimal TargetWeightKg "nullable"
+        FitnessLevel FitnessLevel
+        FitnessGoal Goal
+        int TrainingDaysPerWeek
+        int PreferredWorkoutDurationMinutes
+        decimal Bmi
+        BmiCategory BmiCategory
+        DateTime CreatedAt
+        DateTime UpdatedAt "nullable"
+    }
+    exercises {
+        Guid Id PK
+        string Name
+        string Slug
+        string Description "nullable"
+        string Instructions "nullable"
+        string MuscleGroup
+        FitnessLevel Difficulty
+        ExerciseType ExerciseType
+        int DefaultSets "nullable"
+        int DefaultReps "nullable"
+        int DefaultDurationSeconds "nullable"
+        int DefaultRestSeconds
+        string ImageUrl "nullable"
+        bool IsActive
+        DateTime CreatedAt
+    }
+    workout_plans {
+        Guid Id PK
+        Guid UserId FK
+        string Name
+        string Description "nullable"
+        FitnessGoal Goal
+        FitnessLevel Difficulty
+        int EstimatedDurationMinutes
+        bool IsActive
+        bool IsGenerated
+        DateTime CreatedAt
+        DateTime UpdatedAt "nullable"
+    }
+    workout_plan_exercises {
+        Guid Id PK
+        Guid WorkoutPlanId FK
+        Guid ExerciseId FK
+        int Order
+        int Sets
+        int Reps "nullable"
+        int DurationSeconds "nullable"
+        int RestSeconds
+        string Notes "nullable"
+    }
+    workout_sessions {
+        Guid Id PK
+        Guid UserId FK
+        Guid WorkoutPlanId FK "nullable"
+        DateTime StartedAt
+        DateTime CompletedAt "nullable"
+        WorkoutSessionStatus Status
+        int DurationSeconds
+        int TotalExercises
+        int CompletedExercises
+        int TotalSets
+        int CompletedSets
+        int TotalReps
+    }
+    workout_session_exercises {
+        Guid Id PK
+        Guid WorkoutSessionId FK
+        Guid ExerciseId FK
+        int Order
+        int TargetSets
+        int CompletedSets
+        int TargetReps "nullable"
+        int CompletedReps
+        int TargetDurationSeconds "nullable"
+        int CompletedDurationSeconds
+        int RestSeconds
+        bool IsCompleted
+    }
+    weight_records {
+        Guid Id PK
+        Guid UserId FK
+        decimal WeightKg
+        DateTime RecordedAt
+    }
+    users ||--o| user_profiles : profile
+    users ||--o{ workout_plans : owns
+    users ||--o{ workout_sessions : records
+    users ||--o{ weight_records : weighs
+    workout_plans ||--o{ workout_plan_exercises : contains
+    exercises ||--o{ workout_plan_exercises : used_in
+    workout_plans o|--o{ workout_sessions : optional_plan
+    workout_sessions ||--o{ workout_session_exercises : contains
+    exercises ||--o{ workout_session_exercises : performed_as

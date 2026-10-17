@@ -1,0 +1,11 @@
+$ ASPNETCORE_ENVIRONMENT=Development dotnet tool run dotnet-ef migrations list --project src/CoreUp.Infrastructure --startup-project src/CoreUp.Api
+Build started...
+Build succeeded.
+fail: Microsoft.EntityFrameworkCore.Database.Connection[20004]
+      An error occurred using the connection to database 'coreup_db' on server 'tcp://localhost:5432'.
+An error occurred using the connection to database 'coreup_db' on server 'tcp://localhost:5432'.
+An error occurred while accessing the database. Continuing without the information provided by the database. Error: Failed to connect to [::1]:5432
+20260919074323_InitialMvp
+Pending status not shown. Unable to determine which migrations have been applied. This can happen when your project uses a version of Entity Framework Core lower than 5.0.0 or when an error occurs while accessing the database.
+
+EXIT=0
