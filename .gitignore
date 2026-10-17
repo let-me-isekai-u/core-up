@@ -508,3 +508,6 @@ $RECYCLE.BIN/
 # Android source manifest is not .NET Debug build output.
 !mobile/android/app/src/debug/
 !mobile/android/app/src/debug/AndroidManifest.xml
+
+# Project documentation is archived outside this repository.
+/docs/
