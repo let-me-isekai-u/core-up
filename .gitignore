@@ -481,3 +481,26 @@ $RECYCLE.BIN/
 # Vim temporary swap files
 *.swp
 .env
+
+# Monorepo: Flutter and local audit/report output
+**/.dart_tool/
+**/.pub-cache/
+**/.pub/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/build/
+**/coverage/
+**/Pods/
+**/ephemeral/
+**/local.properties
+**/Generated.xcconfig
+**/flutter_export_environment.sh
+*.jks
+*.keystore
+**/key.properties
+.env.*
+!.env.example
+!.env.*.example
+.coreup-docx-render-*/
+.coreup-slide-build/
+/output/
