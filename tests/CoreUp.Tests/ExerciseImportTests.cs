@@ -114,7 +114,7 @@ public sealed class ExerciseImportTests
         await using var db = await CreateDatabase();
         await Import(db);
         var exercise = await db.Exercises.SingleAsync(x => x.Id == ImportedId);
-        exercise.IsActive = true; // Test fixture only; production seed remains pending.
+        exercise.IsActive = true; // Historical import fixture; activation is tested separately.
         await db.SaveChangesAsync();
         var response = await new ExerciseService(db).GetByIdAsync(ImportedId, default);
         Assert.Equal(exercise.Name, response.Name);

@@ -39,7 +39,7 @@ public sealed class PostgresCoreCatalogTests
             await db.Database.MigrateAsync();
             Assert.Equal(33, await db.Exercises.CountAsync());
             Assert.Equal(16, await db.Exercises.CountAsync(x => x.MuscleGroup == "Core"));
-            Assert.Equal(13, await db.Exercises.CountAsync(x => x.IsActive));
+            Assert.Equal(16, await db.Exercises.CountAsync(x => x.IsActive));
             await CoreCatalogTests.Apply(db);
             await CoreCatalogTests.Apply(db);
             await db.Database.MigrateAsync();
@@ -59,7 +59,7 @@ public sealed class PostgresCoreCatalogTests
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.GetProperty("accessToken").GetString());
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/auth/login", credentials)).StatusCode);
         var catalog = await Json(await client.GetAsync("/api/exercises"));
-        Assert.Equal(13, catalog.GetArrayLength());
+        Assert.Equal(16, catalog.GetArrayLength());
         foreach (var item in catalog.EnumerateArray()) Assert.Equal("Core", item.GetProperty("muscleGroup").GetString());
         var approved = catalog.EnumerateArray().Single(x => x.GetProperty("slug").GetString() == "supine-heel-slide");
         var detail = await Json(await client.GetAsync($"/api/exercises/{approved.GetProperty("id").GetString()}"));
@@ -67,9 +67,15 @@ public sealed class PostgresCoreCatalogTests
         Assert.Equal(10, detail.GetProperty("defaultReps").GetInt32());
         Assert.Equal(JsonValueKind.Null, detail.GetProperty("defaultDurationSeconds").ValueKind);
         Assert.Contains("Dụng cụ", detail.GetProperty("instructions").GetString());
-        foreach (var id in new[] { 1, 26, 27, 29 })
+        foreach (var id in new[] { 1 })
             Assert.Equal(HttpStatusCode.NotFound,
                 (await client.GetAsync($"/api/exercises/00000000-0000-0000-0000-{id:D12}")).StatusCode);
+        foreach (var id in new[] { 26, 27, 29 })
+        {
+            var activated = await Json(await client.GetAsync($"/api/exercises/00000000-0000-0000-0000-{id:D12}"));
+            Assert.Equal("Core", activated.GetProperty("muscleGroup").GetString());
+            Assert.Equal(60, activated.GetProperty("defaultRestSeconds").GetInt32());
+        }
         var created = await client.PostAsJsonAsync("/api/profile", Profile("Beginner"));
         Assert.Equal(HttpStatusCode.Created, created.StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/profile")).StatusCode);

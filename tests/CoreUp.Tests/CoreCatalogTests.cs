@@ -4,6 +4,7 @@ using CoreUp.Domain;
 using CoreUp.Infrastructure.Persistence;
 using CoreUp.Infrastructure.Persistence.Migrations;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations.Operations;
 
 namespace CoreUp.Tests;
@@ -18,11 +19,13 @@ public sealed class CoreCatalogTests
         var old = await current.Exercises.AsNoTracking().Where(x => x.CreatedAt < new DateTime(2026, 10, 22)).ToListAsync();
         await RestoreBaseline(current);
         await Apply(current);
+        await Activate(current);
         await Apply(current);
+        await Activate(current);
         Assert.Equal(expected, await Snapshot(current));
         Assert.Equal(33, await current.Exercises.CountAsync());
         Assert.Equal(16, await current.Exercises.CountAsync(x => x.MuscleGroup == "Core"));
-        Assert.Equal(13, await current.Exercises.CountAsync(x => x.IsActive));
+        Assert.Equal(16, await current.Exercises.CountAsync(x => x.IsActive));
         Assert.False(await current.Exercises.AnyAsync(x => x.IsActive && x.MuscleGroup != "Core"));
         Assert.Equal(33, await current.Exercises.Select(x => x.Slug).Distinct().CountAsync());
         foreach (var original in old)
@@ -96,20 +99,47 @@ public sealed class CoreCatalogTests
         await db.SaveChangesAsync();
         var service = new ExerciseService(db);
         var active = await service.GetAsync(null, null, default);
-        Assert.Equal(13, active.Count);
+        Assert.Equal(16, active.Count);
         Assert.All(active, x => Assert.Equal("Core", x.MuscleGroup));
         Assert.Empty(await service.GetAsync(null, "Legs", default));
         Assert.Equal(404, (await Assert.ThrowsAsync<AppException>(() => service.GetByIdAsync(squat.Id, default))).StatusCode);
         foreach (var slug in new[] { "pelvic-tilt", "bent-knee-fallout", "hollow-body-hold" })
         {
-            var pending = await db.Exercises.SingleAsync(x => x.Slug == slug);
-            Assert.False(pending.IsActive);
-            Assert.Null(pending.DefaultSets);
-            Assert.Null(pending.DefaultReps);
-            Assert.Null(pending.DefaultDurationSeconds);
-            Assert.Equal(404, (await Assert.ThrowsAsync<AppException>(() => service.GetByIdAsync(pending.Id, default))).StatusCode);
+            var approved = await db.Exercises.SingleAsync(x => x.Slug == slug);
+            Assert.True(approved.IsActive);
+            Assert.NotNull(approved.DefaultSets);
+            var response = await service.GetByIdAsync(approved.Id, default);
+            Assert.Equal(approved.Slug, response.Slug);
+            Assert.Equal(60, response.DefaultRestSeconds);
         }
         Assert.Empty(new ExpandCoreCatalog().DownOperations);
+    }
+
+    [Fact]
+    public async Task OwnerActivationTwice_PreservesIdentityAndExcludesAdvancedFromBeginners()
+    {
+        await using var db = await CatalogTestDatabase.Create();
+        await Activate(db);
+        await Activate(db);
+        Assert.Equal(33, await db.Exercises.CountAsync());
+        Assert.Equal(16, await db.Exercises.CountAsync(x => x.IsActive));
+        foreach (var id in new[] { 26, 27, 29 })
+        {
+            var exercise = await db.Exercises.AsNoTracking().SingleAsync(x => x.Id == Guid.Parse($"00000000-0000-0000-0000-{id:D12}"));
+            Assert.True(exercise.IsActive);
+            Assert.Equal("Core", exercise.MuscleGroup);
+            Assert.Equal(60, exercise.DefaultRestSeconds);
+            Assert.Equal(id == 26 ? 2 : 1, exercise.DefaultSets);
+            Assert.Equal(id == 26 ? FitnessLevel.Advanced : FitnessLevel.Beginner, exercise.Difficulty);
+            if (id == 26) { Assert.Equal(10, exercise.DefaultDurationSeconds); Assert.Null(exercise.DefaultReps); }
+            else { Assert.Equal(10, exercise.DefaultReps); Assert.Null(exercise.DefaultDurationSeconds); }
+        }
+        var generated = WorkoutPlanGenerator.Generate(new UserProfile
+        {
+            FitnessLevel = FitnessLevel.Beginner, PreferredWorkoutDurationMinutes = 30
+        }, await db.Exercises.AsNoTracking().ToListAsync());
+        Assert.DoesNotContain(generated, x => x.Exercise.Slug == "hollow-body-hold");
+        Assert.Empty(new ActivateOwnerApprovedCoreExercises().DownOperations);
     }
 
     private static async Task<string> Snapshot(CoreUpDbContext db)
@@ -118,6 +148,13 @@ public sealed class CoreCatalogTests
         // SQLite has no timestamp-with-time-zone type; PostgreSQL stores these as UTC.
         foreach (var row in rows) row.CreatedAt = DateTime.SpecifyKind(row.CreatedAt, DateTimeKind.Utc);
         return JsonSerializer.Serialize(rows);
+    }
+
+    internal static async Task Activate(CoreUpDbContext db)
+    {
+        var generator = db.GetService<Microsoft.EntityFrameworkCore.Migrations.IMigrationsSqlGenerator>();
+        foreach (var command in generator.Generate(new ActivateOwnerApprovedCoreExercises().UpOperations, db.GetService<Microsoft.EntityFrameworkCore.Metadata.IDesignTimeModel>().Model))
+            await db.Database.ExecuteSqlRawAsync(command.CommandText);
     }
 
     internal static async Task Apply(CoreUpDbContext db)

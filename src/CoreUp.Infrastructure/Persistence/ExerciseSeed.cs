@@ -33,23 +33,17 @@ internal static class ExerciseSeed
         Reps(23, "Dead Bug", "dead-bug", "Core", 10, "Supine core stability exercise.", "Lower opposite arm and leg while keeping the back stable."),
         Reps(24, "Cat-Cow", "cat-cow", "Mobility", 10, "Gentle spinal mobility sequence.", "Alternate spinal flexion and extension with the breath."),
         Timed(25, "Child's Pose", "childs-pose", "Mobility", 30, "Resting mobility pose for back and hips.", "Sit hips toward heels and reach forward comfortably."),
-        // Pending review: the study protocol is not a beginner prescription.
+        // Product approval is distinct from universal clinical safety.
         new Exercise
         {
             Id = Guid.Parse("00000000-0000-0000-0000-000000000026"),
-            Name = "Giữ thân rỗng (Hollow Body Hold)",
-            Slug = "hollow-body-hold",
-            MuscleGroup = "Core",
-            Difficulty = FitnessLevel.Advanced, // Conservative placeholder, not a research rating.
+            Name = "Giữ thân rỗng (Hollow Body Hold)", Slug = "hollow-body-hold",
+            MuscleGroup = "Core", Difficulty = FitnessLevel.Advanced,
             ExerciseType = ExerciseType.Duration,
-            DefaultSets = null,
-            DefaultReps = null,
-            DefaultDurationSeconds = null,
-            DefaultRestSeconds = 0, // Required field; unset placeholder, not a rest prescription.
-            IsActive = false,
-            CreatedAt = SeedDate,
-            Description = "Chờ duyệt chuyên môn. Nguồn: Thomas et al. (2017), The effects of a calisthenics training intervention on posture, strength and body composition, Isokinetics and Exercise Science 25, 215–222. DOI: 10.3233/IES-170001. Bảng 1, tr. 217; mục 2.5.4 và Hình 1f, tr. 218. Tên gốc: Hollow body position. Nghiên cứu dùng 4 hiệp × 45 giây trong chương trình phối hợp; không xác lập liều tập riêng cho người mới hoặc thừa cân. Không chứng minh giảm mỡ bụng tại chỗ.",
-            Instructions = "Tư thế giữ tĩnh minh họa tại Hình 1f, tr. 218. Chưa cung cấp hướng dẫn tự tập: cần duyệt kỹ thuật, biến thể phù hợp, tiêu chí dừng, số hiệp, thời gian giữ và nghỉ trước khi kích hoạt. Advanced là phân loại tạm của ứng dụng, không phải kết luận nghiên cứu; giá trị nghỉ 0 là dữ liệu chờ duyệt, không phải khuyến nghị tập không nghỉ."
+            DefaultSets = 2, DefaultReps = null, DefaultDurationSeconds = 10,
+            DefaultRestSeconds = 60, IsActive = true, CreatedAt = SeedDate,
+            Description = "Chủ dự án phê duyệt ngày 22/10/2026. Bài giữ tĩnh Hollow Body Hold, không phải Hollow Rock động. Nguồn kỹ thuật: American Council on Exercise (2025), Crunch Time: An Evidence-based Approach to Training the Abs, https://www.acefitness.org/resources/pros/expert-articles/8989/crunch-time-an-evidence-based-approach-to-training-the-abs/. Thomas et al. (2017), DOI 10.3233/IES-170001, Bảng 1 tr. 217, mục 2.5.4 và Hình 1f tr. 218 dùng 4 × 45 giây trong chương trình phối hợp 8 tuần. Core-Up chọn Advanced, 2 × 10 giây, nghỉ 60 giây làm mặc định thiết kế; ACE không đưa liều này và nghiên cứu không chứng minh đây là liều tối ưu. Không chứng minh giảm mỡ bụng tại chỗ.",
+            Instructions = "1. Nằm ngửa trên thảm, gối gập; thở ra và siết nhẹ bụng để giữ lưng dưới tiếp xúc thảm. 2. Nâng đầu/vai vừa phải, duỗi chân và đưa tay qua đầu chỉ đến mức giữ lưng dưới ổn định, không kéo cổ. 3. Giữ tĩnh tối đa 10 giây, thở đều, không đung đưa; hạ xuống nghỉ 60 giây rồi lặp, tổng 2 hiệp. Lỗi: võng lưng, nín thở, rướn cổ hoặc lắc thành Hollow Rock. Giảm khó bằng co cả hai gối về tabletop, hoặc co một chân; biến thể này không tự biến record Advanced thành bài Beginner. Dừng ngay khi mất tiếp xúc lưng dưới, đau lưng/cổ, chóng mặt, khó thở hoặc bụng phồng bất thường. Không cố giữ đủ thời gian qua đau; người có bệnh lý/chấn thương hoặc mới phẫu thuật cần hỏi chuyên viên trước khi tập. Dụng cụ: thảm; không thêm tạ."
         },
         .. CoreExerciseSeed.All
     ];
