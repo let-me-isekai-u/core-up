@@ -32,7 +32,25 @@ internal static class ExerciseSeed
         Reps(22, "Burpee", "burpee", "Full Body", 8, "High-intensity full-body conditioning movement.", "Move through squat, plank and stand with controlled landings.", FitnessLevel.Intermediate),
         Reps(23, "Dead Bug", "dead-bug", "Core", 10, "Supine core stability exercise.", "Lower opposite arm and leg while keeping the back stable."),
         Reps(24, "Cat-Cow", "cat-cow", "Mobility", 10, "Gentle spinal mobility sequence.", "Alternate spinal flexion and extension with the breath."),
-        Timed(25, "Child's Pose", "childs-pose", "Mobility", 30, "Resting mobility pose for back and hips.", "Sit hips toward heels and reach forward comfortably.")
+        Timed(25, "Child's Pose", "childs-pose", "Mobility", 30, "Resting mobility pose for back and hips.", "Sit hips toward heels and reach forward comfortably."),
+        // Pending review: the study protocol is not a beginner prescription.
+        new Exercise
+        {
+            Id = Guid.Parse("00000000-0000-0000-0000-000000000026"),
+            Name = "Giữ thân rỗng (Hollow Body Hold)",
+            Slug = "hollow-body-hold",
+            MuscleGroup = "Core",
+            Difficulty = FitnessLevel.Advanced, // Conservative placeholder, not a research rating.
+            ExerciseType = ExerciseType.Duration,
+            DefaultSets = null,
+            DefaultReps = null,
+            DefaultDurationSeconds = null,
+            DefaultRestSeconds = 0, // Required field; unset placeholder, not a rest prescription.
+            IsActive = false,
+            CreatedAt = SeedDate,
+            Description = "Chờ duyệt chuyên môn. Nguồn: Thomas et al. (2017), The effects of a calisthenics training intervention on posture, strength and body composition, Isokinetics and Exercise Science 25, 215–222. DOI: 10.3233/IES-170001. Bảng 1, tr. 217; mục 2.5.4 và Hình 1f, tr. 218. Tên gốc: Hollow body position. Nghiên cứu dùng 4 hiệp × 45 giây trong chương trình phối hợp; không xác lập liều tập riêng cho người mới hoặc thừa cân. Không chứng minh giảm mỡ bụng tại chỗ.",
+            Instructions = "Tư thế giữ tĩnh minh họa tại Hình 1f, tr. 218. Chưa cung cấp hướng dẫn tự tập: cần duyệt kỹ thuật, biến thể phù hợp, tiêu chí dừng, số hiệp, thời gian giữ và nghỉ trước khi kích hoạt. Advanced là phân loại tạm của ứng dụng, không phải kết luận nghiên cứu; giá trị nghỉ 0 là dữ liệu chờ duyệt, không phải khuyến nghị tập không nghỉ."
+        }
     ];
 
     private static Exercise Reps(int id, string name, string slug, string muscle, int reps,

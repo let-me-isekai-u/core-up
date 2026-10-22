@@ -488,6 +488,20 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             MuscleGroup = "Mobility",
                             Name = "Child's Pose",
                             Slug = "childs-pose"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000026"),
+                            CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultRestSeconds = 0,
+                            Description = "Chờ duyệt chuyên môn. Nguồn: Thomas et al. (2017), The effects of a calisthenics training intervention on posture, strength and body composition, Isokinetics and Exercise Science 25, 215–222. DOI: 10.3233/IES-170001. Bảng 1, tr. 217; mục 2.5.4 và Hình 1f, tr. 218. Tên gốc: Hollow body position. Nghiên cứu dùng 4 hiệp × 45 giây trong chương trình phối hợp; không xác lập liều tập riêng cho người mới hoặc thừa cân. Không chứng minh giảm mỡ bụng tại chỗ.",
+                            Difficulty = "Advanced",
+                            ExerciseType = "Duration",
+                            Instructions = "Tư thế giữ tĩnh minh họa tại Hình 1f, tr. 218. Chưa cung cấp hướng dẫn tự tập: cần duyệt kỹ thuật, biến thể phù hợp, tiêu chí dừng, số hiệp, thời gian giữ và nghỉ trước khi kích hoạt. Advanced là phân loại tạm của ứng dụng, không phải kết luận nghiên cứu; giá trị nghỉ 0 là dữ liệu chờ duyệt, không phải khuyến nghị tập không nghỉ.",
+                            IsActive = false,
+                            MuscleGroup = "Core",
+                            Name = "Giữ thân rỗng (Hollow Body Hold)",
+                            Slug = "hollow-body-hold"
                         });
                 });
 
