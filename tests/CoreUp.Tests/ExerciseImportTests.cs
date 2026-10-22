@@ -61,7 +61,7 @@ public sealed class ExerciseImportTests
             DefaultSets = 2, DefaultDurationSeconds = 12, DefaultRestSeconds = 60,
             Description = "User-managed record", CreatedAt = DateTime.UtcNow
         };
-        var user = new User { Id = Guid.NewGuid(), Email = "test@example.invalid", PasswordHash = "test" };
+        var user = new User { Id = Guid.NewGuid(), Username = "fixture_" + Guid.NewGuid().ToString("N")[..16], Email = "test@example.invalid", PasswordHash = "test" };
         var session = new WorkoutSession
         {
             Id = Guid.NewGuid(), User = user, Status = WorkoutSessionStatus.Completed,

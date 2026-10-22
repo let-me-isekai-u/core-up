@@ -22,7 +22,9 @@ class _SplashScreenState extends State<SplashScreen> {
       final page = !seen
           ? OnboardingScreen(destinationBuilder: (_) => const AuthScreen())
           : status == AuthStatus.authenticated || status == AuthStatus.guest
-          ? const ShellScreen()
+          ? (context.read<AuthProvider>().needsProfile
+                ? const ProfileSetupScreen()
+                : const ShellScreen())
           : const AuthScreen();
       Navigator.of(context).pushReplacement(fadeRoute(page));
     });

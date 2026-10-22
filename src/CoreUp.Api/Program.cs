@@ -1,3 +1,5 @@
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.RateLimiting;
 using System.Text;
 using System.Text.Json.Serialization;
 using CoreUp.Api;
@@ -64,6 +66,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = 30, Window = TimeSpan.FromMinutes(1), QueueLimit = 0
+        }));
+});
 
 var app = builder.Build();
 app.UseMiddleware<ApiExceptionMiddleware>();
@@ -79,6 +91,7 @@ else
     app.UseHttpsRedirection();
 }
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();

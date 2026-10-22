@@ -31,8 +31,35 @@ dotnet run --project src/CoreUp.Api --launch-profile http
 
 API: `http://localhost:5027`; Swagger: `http://localhost:5027/swagger`;
 health: `http://localhost:5027/health`.
-Đăng ký/đăng nhập để lấy Bearer token. Ngoài Development, cấu hình `Jwt__Key`
+Đăng ký bằng `POST /api/auth/register` với `username`, `email`, `password`;
+đăng nhập bằng `POST /api/auth/login` với `username`, `password` để lấy Bearer token.
+Username dài 3–24 ký tự ASCII Latin/số/`_`, unique không phân biệt hoa/thường;
+email được trim/lowercase và unique. Password đăng ký dài 8–128 ký tự,
+Confirm Password chỉ đối chiếu trên Flutter, không gửi API/lưu DB.
+Migration `AddUsernames` cấp tên `u_1`, `u_2`, ... theo thứ tự GUID cho tài khoản cũ,
+giữ nguyên GUID, password hash và các quan hệ dữ liệu. Để tra tên được cấp trong
+môi trường development, chạy query read-only bằng công cụ PostgreSQL đã cấu hình:
+
+```sql
+SELECT "Id", "Email", "Username" FROM users ORDER BY "Id";
+```
+
+Không đưa kết quả query chứa email vào log công khai. Auth có giới hạn 30 request/phút/IP
+(chung register/login); khi nhận 429 hãy đợi trước khi thử lại. Phase 1 chưa có OTP,
+Google, quên/đổi mật khẩu hoặc xóa tài khoản.
+
+Ngoài Development, cấu hình `Jwt__Key`
 riêng tối thiểu 32 byte; không dùng khóa mẫu hoặc commit `.env`.
+
+Kiểm thử auth native bằng API trỏ **database thử riêng** (không dùng DB development):
+
+```bash
+cd mobile
+flutter test integration_test/username_auth_flow_test.dart -d macos --dart-define=API_BASE_URL=http://127.0.0.1:5049 --dart-define=AUTH_PHASE1_TEST_API=true
+```
+
+Test dùng khóa secure storage riêng và preference trong bộ nhớ. macOS dùng native login
+Keychain qua FlutterSecureStorage; iOS/Android giữ cấu hình secure storage hiện có.
 
 ## Flutter
 

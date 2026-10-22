@@ -8,6 +8,7 @@ class AuthScreen extends StatefulWidget {
 }
 
 class _AuthScreenState extends State<AuthScreen> {
+  final _username = TextEditingController();
   final _email = TextEditingController();
   final _password = TextEditingController();
   final _confirmPassword = TextEditingController();
@@ -18,6 +19,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   void dispose() {
+    _username.dispose();
     _email.dispose();
     _password.dispose();
     _confirmPassword.dispose();
@@ -86,19 +88,23 @@ class _AuthScreenState extends State<AuthScreen> {
                     ? _AuthForm(
                         key: ValueKey(_register),
                         formKey: _form,
+                        username: _username,
                         email: _email,
                         password: _password,
                         confirmPassword: _confirmPassword,
                         register: _register,
                         error: auth.error,
+                        fieldErrors: auth.fieldErrors,
                         onSubmit: () async {
-                          if (!_form.currentState!.validate()) return;
+                          if (_submitting || !_form.currentState!.validate())
+                            return;
                           setState(() => _submitting = true);
                           final response = await withMinimumLoading(
                             () => auth.auth(
                               _register ? 'register' : 'login',
-                              _email.text.trim(),
+                              _username.text.trim(),
                               _password.text,
+                              email: _register ? _email.text.trim() : null,
                             ),
                           );
                           if (!mounted) return;
@@ -159,7 +165,7 @@ class _AuthChoices extends StatelessWidget {
       PrimaryButton(label: 'TIẾP TỤC KHÔNG ĐĂNG NHẬP', onTap: onGuest),
       const SizedBox(height: 16),
       const Text(
-        'Đăng nhập để nhận kế hoạch cá nhân hóa, lưu lịch sử và theo dõi tiến độ.',
+        'Đăng nhập để tập theo cấp độ, lưu lịch sử và theo dõi tiến độ.',
         textAlign: TextAlign.center,
         style: TextStyle(color: muted, height: 1.4),
       ),
@@ -193,21 +199,25 @@ class _AuthForm extends StatelessWidget {
   const _AuthForm({
     super.key,
     required this.formKey,
+    required this.username,
     required this.email,
     required this.password,
     required this.confirmPassword,
     required this.register,
     required this.error,
+    required this.fieldErrors,
     required this.onSubmit,
     required this.onSwitchMode,
     required this.onBack,
   });
   final GlobalKey<FormState> formKey;
+  final TextEditingController username;
   final TextEditingController email;
   final TextEditingController password;
   final TextEditingController confirmPassword;
   final bool register;
   final String? error;
+  final Map<String, String> fieldErrors;
   final VoidCallback onSubmit;
   final VoidCallback onSwitchMode;
   final VoidCallback onBack;
@@ -222,33 +232,70 @@ class _AuthForm extends StatelessWidget {
         child: Column(
           children: [
             TextFormField(
-              controller: email,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
-              validator: (value) => value == null || !value.contains('@')
-                  ? 'Nhập email hợp lệ'
-                  : null,
-            ),
-            const SizedBox(height: 14),
-            TextFormField(
-              controller: password,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Mật khẩu'),
-              validator: (value) => value == null || value.length < 8
-                  ? 'Dùng ít nhất 8 ký tự'
-                  : null,
+              controller: username,
+              autocorrect: false,
+              enableSuggestions: false,
+              autofillHints: const [AutofillHints.username],
+              decoration: InputDecoration(
+                labelText: 'Tên tài khoản',
+                errorText: fieldErrors['username'],
+              ),
+              validator: (value) {
+                final name = value?.trim() ?? '';
+                if (name.isEmpty) return 'Nhập tên tài khoản';
+                if (!RegExp(r'^[A-Za-z0-9_]{3,24}$').hasMatch(name)) {
+                  return 'Dùng 3–24 chữ Latin, số hoặc dấu gạch dưới';
+                }
+                return null;
+              },
             ),
             if (register) ...[
               const SizedBox(height: 14),
               TextFormField(
-                controller: confirmPassword,
-                obscureText: true,
-                decoration: const InputDecoration(
-                  labelText: 'Nhập lại mật khẩu',
+                controller: email,
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
+                decoration: InputDecoration(
+                  labelText: 'Email',
+                  errorText: fieldErrors['email'],
                 ),
-                validator: (value) => value != password.text
-                    ? 'Mật khẩu nhập lại chưa khớp'
-                    : null,
+                validator: (value) {
+                  final address = value?.trim() ?? '';
+                  if (address.isEmpty) return 'Nhập email';
+                  if (address.length > 320 ||
+                      !RegExp(
+                        r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
+                      ).hasMatch(address)) {
+                    return 'Nhập email hợp lệ';
+                  }
+                  return null;
+                },
+              ),
+            ],
+            const SizedBox(height: 14),
+            _PasswordField(
+              controller: password,
+              label: 'Mật khẩu',
+              error: fieldErrors['password'],
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Nhập mật khẩu';
+                if (register && value.length < 8) return 'Dùng ít nhất 8 ký tự';
+                if (value.length > 128) return 'Dùng tối đa 128 ký tự';
+                return null;
+              },
+            ),
+            if (register) ...[
+              const SizedBox(height: 14),
+              _PasswordField(
+                controller: confirmPassword,
+                label: 'Nhập lại mật khẩu',
+                validator: (value) {
+                  if (value == null || value.isEmpty)
+                    return 'Nhập lại mật khẩu';
+                  return value != password.text
+                      ? 'Mật khẩu nhập lại chưa khớp'
+                      : null;
+                },
               ),
             ],
           ],
@@ -274,5 +321,43 @@ class _AuthForm extends StatelessWidget {
       ),
       TextButton(onPressed: onBack, child: const Text('Quay lại')),
     ],
+  );
+}
+
+class _PasswordField extends StatefulWidget {
+  const _PasswordField({
+    required this.controller,
+    required this.label,
+    required this.validator,
+    this.error,
+  });
+  final TextEditingController controller;
+  final String label;
+  final String? error;
+  final String? Function(String?) validator;
+  @override
+  State<_PasswordField> createState() => _PasswordFieldState();
+}
+
+class _PasswordFieldState extends State<_PasswordField> {
+  bool _hidden = true;
+  @override
+  Widget build(BuildContext context) => TextFormField(
+    controller: widget.controller,
+    obscureText: _hidden,
+    autocorrect: false,
+    enableSuggestions: false,
+    validator: widget.validator,
+    decoration: InputDecoration(
+      labelText: widget.label,
+      errorText: widget.error,
+      suffixIcon: IconButton(
+        tooltip: _hidden ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
+        onPressed: () => setState(() => _hidden = !_hidden),
+        icon: Icon(
+          _hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+        ),
+      ),
+    ),
   );
 }

@@ -26,6 +26,7 @@ public sealed class PostgresFactAttribute : FactAttribute
     }
 }
 
+[Collection("PostgreSQL")]
 public sealed class PostgresCoreCatalogTests
 {
     [PostgresFact]
@@ -52,7 +53,7 @@ public sealed class PostgresCoreCatalogTests
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.PostAsJsonAsync("/api/profile", new { })).StatusCode);
         Assert.Equal(HttpStatusCode.Unauthorized, (await client.GetAsync("/api/exercises")).StatusCode);
 
-        var credentials = new { email = $"core-{Guid.NewGuid():N}@example.invalid", password = "CoreTestOnly-12345!" };
+        var credentials = new { username = "core_" + Guid.NewGuid().ToString("N")[..16], email = $"core-{Guid.NewGuid():N}@example.invalid", password = "CoreTestOnly-12345!" };
         var registered = await client.PostAsJsonAsync("/api/auth/register", credentials);
         Assert.Equal(HttpStatusCode.OK, registered.StatusCode);
         var auth = await Json(registered);
@@ -104,6 +105,7 @@ public sealed class PostgresCoreCatalogTests
         using var otherClient = factory.CreateClient();
         var otherAuth = await Json(await otherClient.PostAsJsonAsync("/api/auth/register", new
         {
+            username = "other_" + Guid.NewGuid().ToString("N")[..16],
             email = $"other-{Guid.NewGuid():N}@example.invalid", password = "CoreTestOnly-12345!"
         }));
         otherClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", otherAuth.GetProperty("accessToken").GetString());
@@ -140,7 +142,7 @@ public sealed class PostgresCoreCatalogTests
             Id = Guid.NewGuid(), Name = "Single knee fallout", Slug = "custom-fallout", MuscleGroup = "Core",
             IsActive = false, Description = "Preserve custom review", DefaultRestSeconds = 75, CreatedAt = DateTime.UtcNow
         };
-        var user = new User { Id = Guid.NewGuid(), Email = $"alias-{Guid.NewGuid():N}@example.invalid", PasswordHash = "test" };
+        var user = new User { Id = Guid.NewGuid(), Username = "fixture_" + Guid.NewGuid().ToString("N")[..16], Email = $"alias-{Guid.NewGuid():N}@example.invalid", PasswordHash = "test" };
         var session = new WorkoutSession
         {
             Id = Guid.NewGuid(), User = user, Status = WorkoutSessionStatus.Completed,
@@ -193,7 +195,7 @@ public sealed class PostgresCoreCatalogTests
         return await response.Content.ReadFromJsonAsync<JsonElement>();
     }
 
-    private static WebApplicationFactory<Program> Factory()
+    internal static WebApplicationFactory<Program> Factory()
     {
         var connection = Environment.GetEnvironmentVariable("COREUP_TEST_POSTGRES")!;
         var settings = new NpgsqlConnectionStringBuilder(connection);

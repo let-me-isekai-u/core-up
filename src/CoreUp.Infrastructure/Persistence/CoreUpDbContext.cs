@@ -24,6 +24,10 @@ public sealed class CoreUpDbContext(DbContextOptions<CoreUpDbContext> options)
         {
             entity.ToTable("users");
             entity.HasKey(x => x.Id);
+            entity.Property(x => x.Username).HasMaxLength(24).IsRequired();
+            entity.Property(x => x.NormalizedUsername).HasMaxLength(24)
+                .HasComputedColumnSql("lower(\"Username\")", stored: true);
+            entity.HasIndex(x => x.NormalizedUsername).IsUnique();
             entity.Property(x => x.Email).HasMaxLength(320).IsRequired();
             entity.Property(x => x.PasswordHash).HasMaxLength(1000).IsRequired();
             entity.HasIndex(x => x.Email).IsUnique();

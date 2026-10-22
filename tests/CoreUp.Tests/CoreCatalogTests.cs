@@ -52,7 +52,7 @@ public sealed class CoreCatalogTests
             Id = Guid.NewGuid(), Name = name, Slug = slug, MuscleGroup = "Core", IsActive = false,
             DefaultReps = 2, Description = "Custom preserved", CreatedAt = DateTime.UtcNow
         };
-        var user = new User { Id = Guid.NewGuid(), Email = "history@example.invalid", PasswordHash = "test" };
+        var user = new User { Id = Guid.NewGuid(), Username = "fixture_" + Guid.NewGuid().ToString("N")[..16], Email = "history@example.invalid", PasswordHash = "test" };
         var plan = new WorkoutPlan
         {
             Id = Guid.NewGuid(), User = user, Name = "Historical Full Body", IsActive = true,

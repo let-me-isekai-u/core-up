@@ -1,9 +1,11 @@
 using CoreUp.Application;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace CoreUp.Api.Controllers;
 
+[EnableRateLimiting("auth")]
 [Route("api/auth")]
 public sealed class AuthController(AuthService auth) : ApiControllerBase
 {

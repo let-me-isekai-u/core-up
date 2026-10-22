@@ -5,14 +5,16 @@ namespace CoreUp.Application;
 
 public sealed class RegisterRequest
 {
-    [Required, EmailAddress] public string Email { get; init; } = string.Empty;
-    [Required, MinLength(8)] public string Password { get; init; } = string.Empty;
+    [Required, RegularExpression(@"[A-Za-z0-9_]{3,24}", ErrorMessage = "Tên tài khoản cần 3–24 ký tự Latin, số hoặc dấu gạch dưới.")]
+    public string Username { get; init; } = string.Empty;
+    [Required, EmailAddress, MaxLength(320)] public string Email { get; init; } = string.Empty;
+    [Required, MinLength(8), MaxLength(128)] public string Password { get; init; } = string.Empty;
 }
 
 public sealed class LoginRequest
 {
-    [Required, EmailAddress] public string Email { get; init; } = string.Empty;
-    [Required] public string Password { get; init; } = string.Empty;
+    [Required, MaxLength(24)] public string Username { get; init; } = string.Empty;
+    [Required, MaxLength(128)] public string Password { get; init; } = string.Empty;
 }
 
 public sealed record AuthResponse(Guid UserId, string Email, string AccessToken, bool NeedsProfile);

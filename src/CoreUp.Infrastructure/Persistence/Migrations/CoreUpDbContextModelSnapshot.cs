@@ -633,6 +633,13 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                         .HasMaxLength(320)
                         .HasColumnType("character varying(320)");
 
+                    b.Property<string>("NormalizedUsername")
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)")
+                        .HasComputedColumnSql("lower(\"Username\")", true);
+
                     b.Property<string>("PasswordHash")
                         .IsRequired()
                         .HasMaxLength(1000)
@@ -641,9 +648,17 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Username")
+                        .IsRequired()
+                        .HasMaxLength(24)
+                        .HasColumnType("character varying(24)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("NormalizedUsername")
                         .IsUnique();
 
                     b.ToTable("users", (string)null);
