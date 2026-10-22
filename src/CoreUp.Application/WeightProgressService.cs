@@ -22,8 +22,8 @@ public sealed class WeightProgressService(IApplicationDbContext db)
             WeightKg = request.WeightKg, RecordedAt = DateTime.UtcNow
         };
         profile.WeightKg = request.WeightKg;
-        profile.Bmi = BmiCalculator.Calculate(profile.HeightCm, request.WeightKg);
-        profile.BmiCategory = BmiCalculator.Classify(profile.Bmi);
+        profile.Bmi = profile.HeightCm is decimal height ? BmiCalculator.Calculate(height, request.WeightKg) : null;
+        profile.BmiCategory = profile.Bmi is decimal bmi ? BmiCalculator.Classify(bmi) : null;
         profile.UpdatedAt = DateTime.UtcNow;
         db.WeightRecords.Add(record);
         await db.SaveChangesAsync(ct);

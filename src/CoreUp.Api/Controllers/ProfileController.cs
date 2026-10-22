@@ -12,6 +12,18 @@ public sealed class ProfileController(ProfileService profiles) : ApiControllerBa
     public async Task<ActionResult<ProfileResponse>> Get(CancellationToken ct) =>
         Ok(await profiles.GetAsync(CurrentUserId, ct));
 
+    [HttpPost("fitness-assessment/preview")]
+    public ActionResult<FitnessAssessmentResponse> Preview(FitnessAssessmentPreviewRequest request) =>
+        Ok(FitnessAssessmentScoring.Evaluate(request.Answers));
+
+    [HttpPost("fitness-assessment")]
+    public async Task<ActionResult<ProfileResponse>> Assess(FitnessAssessmentRequest request, CancellationToken ct) =>
+        Ok(await profiles.AssessAsync(CurrentUserId, request, ct));
+
+    [HttpPut("measurements")]
+    public async Task<ActionResult<ProfileResponse>> Measurements(MeasurementsRequest request, CancellationToken ct) =>
+        Ok(await profiles.UpdateMeasurementsAsync(CurrentUserId, request, ct));
+
     [HttpPost]
     public async Task<ActionResult<ProfileResponse>> Create(ProfileRequest request, CancellationToken ct)
     {

@@ -24,8 +24,8 @@ public sealed class ProfileRequest
     [Required, MaxLength(150)] public string FullName { get; init; } = string.Empty;
     public DateOnly? DateOfBirth { get; init; }
     public Gender? Gender { get; init; }
-    [Range(100, 250)] public decimal HeightCm { get; init; }
-    [Range(30, 300)] public decimal WeightKg { get; init; }
+    [Range(100, 250)] public decimal? HeightCm { get; init; }
+    [Range(30, 300)] public decimal? WeightKg { get; init; }
     [Range(30, 300)] public decimal? TargetWeightKg { get; init; }
     public FitnessLevel FitnessLevel { get; init; }
     public FitnessGoal Goal { get; init; }
@@ -35,10 +35,10 @@ public sealed class ProfileRequest
 
 public sealed record ProfileResponse(
     Guid Id, string FullName, DateOnly? DateOfBirth, Gender? Gender,
-    decimal HeightCm, decimal WeightKg, decimal? TargetWeightKg,
+    decimal? HeightCm, decimal? WeightKg, decimal? TargetWeightKg,
     FitnessLevel FitnessLevel, FitnessGoal Goal, int TrainingDaysPerWeek,
-    int PreferredWorkoutDurationMinutes, decimal Bmi, BmiCategory BmiCategory,
-    WorkoutPlanSummaryResponse? GeneratedPlan = null);
+    int PreferredWorkoutDurationMinutes, decimal? Bmi, BmiCategory? BmiCategory,
+    WorkoutPlanSummaryResponse? GeneratedPlan = null, FitnessAssessmentResponse? Assessment = null);
 
 public sealed record ExerciseResponse(
     Guid Id, string Name, string Slug, string? Description, string? Instructions,
@@ -130,3 +130,31 @@ public sealed class ChangePasswordRequest
 }
 public sealed record OtpSentResponse(string Message, int ExpiresInSeconds = 300, int ResendAfterSeconds = 60);
 public sealed record ResetGrantResponse(string ResetToken, DateTime ExpiresAt);
+
+
+public sealed class FitnessAssessmentPreviewRequest
+{
+    [Required, MinLength(7), MaxLength(7)] public int[] Answers { get; init; } = [];
+}
+
+public sealed class FitnessAssessmentRequest
+{
+    [Required, MinLength(7), MaxLength(7)] public int[] Answers { get; init; } = [];
+    [Required] public FitnessLevel? UserSelectedLevel { get; init; }
+    public bool ConfirmHigherLevel { get; init; }
+    [MaxLength(150)] public string? FullName { get; init; }
+    public bool ShareMeasurements { get; init; }
+    [Range(100, 250)] public decimal? HeightCm { get; init; }
+    [Range(30, 300)] public decimal? WeightKg { get; init; }
+}
+
+public sealed class MeasurementsRequest
+{
+    [Range(100, 250)] public decimal? HeightCm { get; init; }
+    [Range(30, 300)] public decimal? WeightKg { get; init; }
+    [Range(30, 300)] public decimal? TargetWeightKg { get; init; }
+}
+
+public sealed record FitnessAssessmentResponse(
+    FitnessLevel RecommendedLevel, string Explanation, IReadOnlyList<string> SafetyNotes,
+    FitnessLevel? UserSelectedLevel, IReadOnlyList<int> Answers, int Score, int Version);

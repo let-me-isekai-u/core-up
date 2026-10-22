@@ -8,6 +8,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   String? _loadingMessage;
+  bool _measurementDeferred = false;
 
   @override
   void initState() {
@@ -28,6 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
         context.read<WorkoutProvider>().loadProgress(),
       ]);
     });
+    if (!mounted) return;
+    final profileId = context.read<ProfileProvider>().data?['id']?.toString();
+    if (profileId != null) {
+      _measurementDeferred = await context.read<LocalStorageService>().isMeasurementReviewDeferred(profileId);
+    }
     if (mounted) setState(() => _loadingMessage = null);
   }
 
@@ -101,12 +107,12 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Muốn có kế hoạch dành cho bạn?',
+              'Muốn chọn giáo trình theo mức?',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Đăng nhập để cá nhân hóa lịch tập và lưu tiến độ.',
+              'Đăng nhập để trả lời questionnaire, chọn giáo trình chuẩn và lưu tiến độ.',
               style: TextStyle(color: muted, height: 1.4),
             ),
             const SizedBox(height: 14),
@@ -125,6 +131,24 @@ class _HomeScreenState extends State<HomeScreen> {
     final workout = context.watch<WorkoutProvider>();
     final progress = workout.progress;
     final exercises = workout.plan?['exercises'] as List?;
+    final profileProvider = context.watch<ProfileProvider>();
+    if (profileProvider.error != null && profile == null) {
+      return [
+        Text(profileProvider.error!),
+        TextButton(onPressed: _loadAuthenticatedHome, child: const Text('THỬ TẢI LẠI')),
+      ];
+    }
+    if (profile?['assessment'] == null) {
+      return [
+        const Text('BẮT ĐẦU VỚI FREE', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 20),
+        const Text('Trả lời 7 câu hỏi và xác nhận mức Dễ/Vừa/Khó để nhận giáo trình Core chuẩn. Không bắt buộc nhập số đo.'),
+        const SizedBox(height: 16),
+        PrimaryButton(label: 'CHỌN MỨC TẬP', onTap: () => Navigator.of(context).push(fadeRoute(const ProfileSetupScreen(review: true)))),
+        const SizedBox(height: 12),
+        const Text('Bạn có thể để sau và xem tiến độ đã có. Chỉ bắt đầu buổi Free sau khi xác nhận mức tập.'),
+      ];
+    }
     return [
       Text(
         '$_greeting, ${formatDisplayName(profile?['fullName']?.toString() ?? 'Vận động viên')}',
@@ -144,15 +168,28 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               workout.plan == null
                   ? 'Kế hoạch đang chờ bạn'
-                  : localizeValue(workout.plan!['name'].toString()),
+                  : 'Core chuẩn · ${_levelLabel(workout.plan!['difficulty'].toString())}',
               style: const TextStyle(fontSize: 21, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 6),
             Text(
               workout.plan == null
-                  ? 'Tạo kế hoạch cá nhân hóa từ hồ sơ của bạn.'
+                  ? 'Nhận giáo trình chuẩn theo mức đã xác nhận.'
                   : '${exercises?.length ?? 0} bài • ${workout.plan!['estimatedDurationMinutes']} phút',
             ),
+            const SizedBox(height: 12),
+            const Text('Cấu trúc chung cho tài khoản Free cùng mức; không tự điều chỉnh theo số đo.'),
+            if (exercises != null)
+              for (final item in exercises) ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(item['exercise']['name'].toString()),
+                subtitle: Text('${item['sets']} hiệp × ${item['reps'] ?? item['durationSeconds']} ${item['durationSeconds'] == null ? 'lần' : 'giây'}'),
+                trailing: const Icon(Icons.chevron_right_rounded),
+                onTap: () => Navigator.of(context).push(fadeRoute(ExerciseDetailScreen(item: Map<String, dynamic>.from(item['exercise'])))),
+              ),
+            TextButton(onPressed: () => Navigator.of(context).push(fadeRoute(const ProfileSetupScreen(review: true))),
+              child: const Text('XEM LẠI QUESTIONNAIRE / ĐỔI MỨC')),
+            if (workout.error != null) Text(workout.error!, style: const TextStyle(color: Colors.orangeAccent)),
             const SizedBox(height: 18),
             ElevatedButton(
               onPressed: workout.plan == null
@@ -200,7 +237,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      if (_needsWeightCheckIn(workout.weights)) ...[
+      if (!_measurementDeferred && _needsWeightCheckIn(workout.weights)) ...[
         const SizedBox(height: 14),
         const SectionLabel('CẬP NHẬT CÂN NẶNG'),
         SurfaceCard(
@@ -208,23 +245,24 @@ class _HomeScreenState extends State<HomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Cập nhật cân nặng tuần này',
+                'Cập nhật số đo tháng này (tùy chọn)',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 6),
               const Text(
-                'Theo dõi thay đổi để CoreUp đánh giá tiến trình của bạn.',
+                'Bạn có thể để sau. Số đo không tự thay đổi giáo trình.',
                 style: TextStyle(color: muted, height: 1.4),
               ),
               const SizedBox(height: 12),
               OutlinedButton(
-                onPressed: () => showModalBottomSheet(
-                  context: context,
-                  backgroundColor: surface,
-                  builder: (_) => WeightSheet(provider: workout),
-                ),
-                child: const Text('CẬP NHẬT'),
+                onPressed: _reviewMeasurements,
+                child: const Text('CẬP NHẬT SỐ ĐO'),
               ),
+              TextButton(onPressed: () async {
+                final id = profile?['id']?.toString();
+                if (id != null) await context.read<LocalStorageService>().deferMeasurementReview(id);
+                if (mounted) setState(() => _measurementDeferred = true);
+              }, child: const Text('ĐỂ SAU')),
             ],
           ),
         ),
@@ -258,6 +296,11 @@ class _HomeScreenState extends State<HomeScreen> {
     ];
   }
 
+  Future<void> _reviewMeasurements() async {
+    final saved = await Navigator.of(context).push<bool>(fadeRoute(const MeasurementsScreen()));
+    if (saved == true && mounted) setState(() => _measurementDeferred = true);
+  }
+
   bool _needsWeightCheckIn(List<Map<String, dynamic>> weights) {
     if (weights.isEmpty) return true;
     final dates = weights
@@ -266,7 +309,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .toList();
     if (dates.isEmpty) return true;
     dates.sort();
-    return DateTime.now().difference(dates.last).inDays >= 7;
+    return DateTime.now().difference(dates.last).inDays >= 30;
   }
 
   Future<void> _generatePlan() async {

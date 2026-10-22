@@ -12,6 +12,13 @@ public sealed class WorkoutSessionService(IApplicationDbContext db)
             .SingleOrDefaultAsync(x => x.Id == request.WorkoutPlanId && x.UserId == userId, ct)
             ?? throw new AppException(404, "Workout plan was not found.");
 
+        if (!plan.IsActive)
+            throw new AppException(409, "Giáo trình đã đổi. Hãy tải lại kế hoạch đang hoạt động.");
+        if (!await db.UserProfiles.AnyAsync(x => x.UserId == userId && x.QuestionnaireCompletedAt != null, ct))
+            throw new AppException(400, "Hãy hoàn tất questionnaire trước khi tập Free.");
+        if (plan.Exercises.Count == 0 || plan.Exercises.Any(x => !x.Exercise.IsActive || x.Exercise.MuscleGroup != "Core"))
+            throw new AppException(422, "Giáo trình cũ có bài không còn phù hợp. Hãy xác nhận lại mức tập để nhận giáo trình Core chuẩn.");
+
         var session = new WorkoutSession
         {
             Id = Guid.NewGuid(), UserId = userId, WorkoutPlanId = plan.Id,

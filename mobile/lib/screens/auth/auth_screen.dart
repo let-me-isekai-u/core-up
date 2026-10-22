@@ -114,9 +114,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             fadeRoute(
                               response.needsEmailVerification
                                   ? const EmailVerificationScreen()
-                                  : response.needsProfile
-                                  ? const ProfileSetupScreen()
-                                  : const ShellScreen(),
+                                  : const ProfileSetupScreen(),
                             ),
                           );
                         },

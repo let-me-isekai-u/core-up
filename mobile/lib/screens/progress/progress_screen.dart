@@ -53,7 +53,7 @@ class _ProgressScreenState extends State<ProgressScreen> {
                         BenefitLine('Lưu lịch sử tập luyện'),
                         BenefitLine('Theo dõi cân nặng'),
                         BenefitLine('Xem tiến trình theo tuần'),
-                        BenefitLine('Nhận kế hoạch cá nhân hóa'),
+                        BenefitLine('Nhận giáo trình chuẩn theo mức'),
                       ],
                     ),
                     const SizedBox(height: 20),
@@ -111,6 +111,12 @@ class _ProgressScreenState extends State<ProgressScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 12),
+            Row(children: [
+              StatCard('TỔNG PHÚT TẬP', (data.progress?['totalTrainingMinutes'] ?? 0).toString()),
+              const SizedBox(width: 10),
+              StatCard('CHUỖI NGÀY', (data.progress?['currentStreakDays'] ?? 0).toString()),
+            ]),
             const SizedBox(height: 20),
             const SectionLabel('HOẠT ĐỘNG GẦN ĐÂY'),
             if (data.history.isEmpty)
@@ -148,9 +154,9 @@ class _ProgressScreenState extends State<ProgressScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    data.weights.isEmpty
-                        ? '—'
-                        : '${data.weights.first['weightKg']} kg',
+                    data.progress?['currentWeightKg'] == null
+                        ? 'Chưa cung cấp'
+                        : '${data.progress!['currentWeightKg']} kg',
                     style: const TextStyle(
                       fontSize: 30,
                       fontWeight: FontWeight.w800,
@@ -210,6 +216,7 @@ class WeightSheet extends StatefulWidget {
 class _WeightSheetState extends State<WeightSheet> {
   final controller = TextEditingController();
   var _saving = false;
+  String? _error;
   @override
   void dispose() {
     controller.dispose();
@@ -243,22 +250,33 @@ class _WeightSheetState extends State<WeightSheet> {
                 decoration: const InputDecoration(labelText: 'Cân nặng (kg)'),
               ),
               const SizedBox(height: 16),
+              if (_error != null) Text(_error!, style: const TextStyle(color: Colors.redAccent)),
               PrimaryButton(
                 label: 'LƯU',
                 onTap: () async {
-                  setState(() => _saving = true);
+                  if (_saving) return;
+                  final validation = _measurementError(controller.text, 30, 300);
+                  if (controller.text.trim().isEmpty || validation != null) {
+                    setState(() => _error = validation ?? 'Nhập cân nặng hoặc chọn Để sau.');
+                    return;
+                  }
+                  setState(() { _saving = true; _error = null; });
                   final saved = await withMinimumLoading(
                     () => widget.provider.weight(
-                      double.tryParse(controller.text) ?? 0,
+                      _optionalNumber(controller.text)!,
                     ),
                   );
                   if (!mounted) return;
                   setState(() => _saving = false);
                   if (saved) {
-                    Navigator.of(context).pop();
+                    await context.read<ProfileProvider>().load();
+                    if (mounted) Navigator.of(context).pop();
+                  } else {
+                    setState(() => _error = widget.provider.error);
                   }
                 },
               ),
+              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text('ĐỂ SAU')),
             ],
           ),
         );

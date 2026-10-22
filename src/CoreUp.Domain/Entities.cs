@@ -25,17 +25,20 @@ public sealed class UserProfile
     public string FullName { get; set; } = string.Empty;
     public DateOnly? DateOfBirth { get; set; }
     public Gender? Gender { get; set; }
-    public decimal HeightCm { get; set; }
-    public decimal WeightKg { get; set; }
+    public decimal? HeightCm { get; set; }
+    public decimal? WeightKg { get; set; }
     public decimal? TargetWeightKg { get; set; }
     public FitnessLevel FitnessLevel { get; set; }
     public FitnessGoal Goal { get; set; }
     public int TrainingDaysPerWeek { get; set; }
     public int PreferredWorkoutDurationMinutes { get; set; }
-    public decimal Bmi { get; set; }
-    public BmiCategory BmiCategory { get; set; }
+    public decimal? Bmi { get; set; }
+    public BmiCategory? BmiCategory { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
+    public int QuestionnaireVersion { get; set; }
+    public string? QuestionnaireAnswers { get; set; }
+    public DateTime? QuestionnaireCompletedAt { get; set; }
     public User User { get; set; } = null!;
 }
 

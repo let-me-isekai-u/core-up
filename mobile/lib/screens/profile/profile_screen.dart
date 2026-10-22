@@ -65,7 +65,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     const SurfaceCard(
       child: Column(
         children: [
-          BenefitLine('Cá nhân hóa kế hoạch'),
+          BenefitLine('Giáo trình chuẩn theo mức'),
           BenefitLine('Lưu lịch sử tập'),
           BenefitLine('Theo dõi cân nặng'),
           BenefitLine('Xem tiến độ qua từng tuần'),
@@ -127,19 +127,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ],
               ),
             ),
-            TextButton(onPressed: () {}, child: const Text('Sửa')),
+            TextButton(onPressed: () => Navigator.of(context).push(fadeRoute(const ProfileSetupScreen(review: true))), child: const Text('Mức tập')),
           ],
         ),
       ),
       const SizedBox(height: 14),
-      const SectionLabel('CHỈ SỐ'),
+      const SectionLabel('CHỈ SỐ TÙY CHỌN'),
       Row(
         children: [
-          StatCard('BMI', profile?['bmi']?.toString() ?? '—'),
+          StatCard('BMI', profile?['bmi']?.toString() ?? 'Chưa cung cấp'),
           const SizedBox(width: 10),
           StatCard(
             'CÂN NẶNG',
-            profile?['weightKg'] == null ? '—' : '${profile!['weightKg']} kg',
+            profile?['weightKg'] == null ? 'Chưa cung cấp' : '${profile!['weightKg']} kg',
           ),
         ],
       ),
@@ -177,12 +177,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
 
-      const SurfaceCard(
+      SurfaceCard(
         child: ListTile(
           contentPadding: EdgeInsets.zero,
-          leading: Icon(Icons.manage_accounts_outlined),
-          title: Text('Chỉnh sửa hồ sơ'),
-          trailing: Icon(Icons.chevron_right_rounded),
+          leading: const Icon(Icons.manage_accounts_outlined),
+          title: const Text('Cập nhật số đo (tùy chọn)'),
+          subtitle: const Text('Mỗi tháng hoặc để sau; không đổi giáo trình'),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: () => Navigator.of(context).push(fadeRoute(
+            profile == null ? const ProfileSetupScreen(review: true) : const MeasurementsScreen(),
+          )),
         ),
       ),
       TextButton.icon(

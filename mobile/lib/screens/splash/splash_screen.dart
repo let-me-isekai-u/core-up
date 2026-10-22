@@ -21,12 +21,12 @@ class _SplashScreenState extends State<SplashScreen> {
       if (!mounted) return;
       final page = !seen
           ? OnboardingScreen(destinationBuilder: (_) => const AuthScreen())
-          : status == AuthStatus.authenticated || status == AuthStatus.guest
+          : status == AuthStatus.guest
+          ? const ShellScreen()
+          : status == AuthStatus.authenticated
           ? (context.read<AuthProvider>().needsEmailVerification
                 ? const EmailVerificationScreen()
-                : context.read<AuthProvider>().needsProfile
-                ? const ProfileSetupScreen()
-                : const ShellScreen())
+                : const ProfileSetupScreen())
           : const AuthScreen();
       Navigator.of(context).pushReplacement(fadeRoute(page));
     });

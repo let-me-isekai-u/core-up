@@ -19,6 +19,7 @@ part 'splash/splash_screen.dart';
 part 'auth/auth_screen.dart';
 part 'auth/security_screens.dart';
 part 'profile/profile_setup_screen.dart';
+part 'profile/measurements_screen.dart';
 part 'home/app_shell.dart';
 part 'home/home_screen.dart';
 part 'exercises/exercise_list_screen.dart';
@@ -49,11 +50,19 @@ class CoreUp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider(localStorage)),
         ChangeNotifierProxyProvider<AuthProvider, ProfileProvider>(
           create: (context) => ProfileProvider(context.read<AuthProvider>()),
-          update: (_, auth, previous) => previous ?? ProfileProvider(auth),
+          update: (_, auth, previous) {
+            final provider = previous ?? ProfileProvider(auth);
+            provider.syncAccount();
+            return provider;
+          },
         ),
         ChangeNotifierProxyProvider<AuthProvider, WorkoutProvider>(
           create: (context) => WorkoutProvider(context.read<AuthProvider>()),
-          update: (_, auth, previous) => previous ?? WorkoutProvider(auth),
+          update: (_, auth, previous) {
+            final provider = previous ?? WorkoutProvider(auth);
+            provider.syncAccount();
+            return provider;
+          },
         ),
       ],
       child: MaterialApp(

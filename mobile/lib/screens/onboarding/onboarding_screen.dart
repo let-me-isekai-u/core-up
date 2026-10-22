@@ -64,19 +64,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     _OnboardingPage(
                       title: 'Bắt đầu theo cách của bạn',
                       description:
-                          'Khám phá các bài tập với nhiều mức độ khác nhau và bắt đầu luyện tập ngay khi bạn sẵn sàng.',
+                          'Guest tập giáo trình Core Beginner cố định. Tài khoản Free có questionnaire và chọn mức Dễ/Vừa/Khó.',
                       visual: _DifficultyVisual(),
                     ),
                     _OnboardingPage(
-                      title: 'Cá nhân hoá cho riêng bạn',
+                      title: 'Giáo trình chuẩn theo mức',
                       description:
-                          'Đăng nhập để CoreUp xây dựng kế hoạch tập luyện phù hợp với mục tiêu, thể trạng và trình độ của bạn.',
+                          'Đăng nhập, trả lời 7 câu hỏi và xác nhận mức tập để nhận giáo trình Core chuẩn. Số đo cơ thể là tùy chọn.',
                       visual: _ProfileVisual(),
                     ),
                     _OnboardingPage(
                       title: 'Theo dõi từng bước tiến bộ',
                       description:
-                          'Lưu lịch sử tập luyện, theo dõi cân nặng và nhìn thấy sự thay đổi của bạn theo thời gian.',
+                          'Lưu lịch sử, tổng thời gian và chuỗi ngày tập. Bạn có thể cập nhật số đo mỗi tháng hoặc để sau.',
                       visual: _ProgressVisual(),
                     ),
                   ],

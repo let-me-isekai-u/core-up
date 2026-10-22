@@ -17,23 +17,44 @@ class WorkoutProvider extends ChangeNotifier {
   Map<String, dynamic>? plan, session, progress;
   bool loading = false;
   String? error;
+  String? _owner;
+  void syncAccount() {
+    final owner = '${api.status.name}:${api.token}';
+    if (_owner == owner) return;
+    _owner = owner;
+    exercises = []; weights = []; history = [];
+    plan = null; session = null; progress = null;
+    error = null; loading = false;
+  }
+
+  String _message(Object error) {
+    if (error is DioException && error.response?.data is Map) {
+      final detail = (error.response!.data as Map)['detail'];
+      if (detail is String) return detail;
+    }
+    return api.message(error);
+  }
+
   Future<void> home() async {
-    if (api.isGuest) return;
+    if (!api.isAuthenticated) return;
+    final owner = _owner;
     loading = true;
+    error = null;
     notifyListeners();
     try {
-      final r = await Future.wait([
-        api.dio.get('/api/workout-plans/active'),
-        api.dio.get('/api/progress/summary'),
-      ]);
-      plan = Map<String, dynamic>.from(r[0].data);
-      progress = Map<String, dynamic>.from(r[1].data);
+      final response = await api.dio.get('/api/workout-plans/active');
+      if (owner == _owner) plan = Map<String, dynamic>.from(response.data);
     } catch (e) {
-      if (e is! DioException || e.response?.statusCode != 404)
-        error = api.message(e);
+      if (owner == _owner) {
+        if (e is DioException && e.response?.statusCode == 404) {
+          plan = null;
+        } else {
+          error = _message(e);
+        }
+      }
+    } finally {
+      if (owner == _owner) { loading = false; notifyListeners(); }
     }
-    loading = false;
-    notifyListeners();
   }
 
   Future<void> loadExercises() async {
@@ -50,14 +71,15 @@ class WorkoutProvider extends ChangeNotifier {
           .map((x) => Map<String, dynamic>.from(x))
           .toList();
     } catch (e) {
-      error = api.message(e);
+      error = _message(e);
     }
     loading = false;
     notifyListeners();
   }
 
   Future<void> loadProgress() async {
-    if (api.isGuest) return;
+    if (!api.isAuthenticated) return;
+    final owner = _owner;
     loading = true;
     notifyListeners();
     try {
@@ -66,50 +88,52 @@ class WorkoutProvider extends ChangeNotifier {
         api.dio.get('/api/weight-records'),
         api.dio.get('/api/workout-sessions/history'),
       ]);
+      if (owner != _owner) return;
       progress = Map<String, dynamic>.from(r[0].data);
       weights = (r[1].data as List)
           .map((x) => Map<String, dynamic>.from(x))
           .toList();
+      weights.sort((a, b) => b['recordedAt'].toString().compareTo(a['recordedAt'].toString()));
       history = (r[2].data as List)
           .map((x) => Map<String, dynamic>.from(x))
           .toList();
     } catch (e) {
-      error = api.message(e);
+      if (owner == _owner) error = _message(e);
+    } finally {
+      if (owner == _owner) { loading = false; notifyListeners(); }
     }
-    loading = false;
-    notifyListeners();
   }
 
   Future<bool> generate() async {
+    final owner = _owner;
+    error = null;
     loading = true;
     notifyListeners();
     try {
-      plan = Map<String, dynamic>.from(
-        (await api.dio.post('/api/workout-plans/generate')).data,
-      );
+      final response = await api.dio.post('/api/workout-plans/generate');
+      if (owner != _owner) return false;
+      plan = Map<String, dynamic>.from(response.data);
       return true;
     } catch (e) {
-      error = api.message(e);
+      if (owner == _owner) error = _message(e);
       return false;
     } finally {
-      loading = false;
-      notifyListeners();
+      if (owner == _owner) { loading = false; notifyListeners(); }
     }
   }
 
   Future<bool> start() async {
+    final owner = _owner;
     error = null;
     try {
-      session = Map<String, dynamic>.from(
-        (await api.dio.post(
-          '/api/workout-sessions/start',
-          data: {'workoutPlanId': plan!['id']},
-        )).data,
-      );
+      final response = await api.dio.post('/api/workout-sessions/start',
+        data: {'workoutPlanId': plan!['id']});
+      if (owner != _owner) return false;
+      session = Map<String, dynamic>.from(response.data);
       notifyListeners();
       return true;
     } catch (e) {
-      error = api.message(e);
+      if (owner == _owner) error = _message(e);
       notifyListeners();
       return false;
     }
@@ -165,7 +189,7 @@ class WorkoutProvider extends ChangeNotifier {
         )).data);
       }
     } catch (e) {
-      error = api.message(e);
+      error = _message(e);
       rethrow;
     } finally {
       notifyListeners();
@@ -192,7 +216,7 @@ class WorkoutProvider extends ChangeNotifier {
         );
       }
     } catch (e) {
-      error = api.message(e);
+      error = _message(e);
       rethrow;
     } finally {
       notifyListeners();
@@ -216,7 +240,7 @@ class WorkoutProvider extends ChangeNotifier {
       }
       session = null;
     } catch (e) {
-      error = api.message(e);
+      error = _message(e);
       rethrow;
     } finally {
       notifyListeners();
@@ -230,7 +254,7 @@ class WorkoutProvider extends ChangeNotifier {
       await loadProgress();
       return true;
     } catch (e) {
-      error = api.message(e);
+      error = _message(e);
       notifyListeners();
       return false;
     }

@@ -118,9 +118,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                     if (!context.mounted) return;
                     Navigator.of(context).pushAndRemoveUntil(
                       fadeRoute(
-                        auth.needsProfile
-                            ? const ProfileSetupScreen()
-                            : const ShellScreen(),
+                        const ProfileSetupScreen(),
                       ),
                       (_) => false,
                     );
@@ -138,9 +136,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                   TextButton(
                     onPressed: () => Navigator.of(context).pushAndRemoveUntil(
                       fadeRoute(
-                        auth.needsProfile
-                            ? const ProfileSetupScreen()
-                            : const ShellScreen(),
+                        const ProfileSetupScreen(),
                       ),
                       (_) => false,
                     ),

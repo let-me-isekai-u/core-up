@@ -742,12 +742,11 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("Bmi")
+                    b.Property<decimal?>("Bmi")
                         .HasPrecision(5, 2)
                         .HasColumnType("numeric(5,2)");
 
                     b.Property<string>("BmiCategory")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
@@ -776,11 +775,20 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
-                    b.Property<decimal>("HeightCm")
+                    b.Property<decimal?>("HeightCm")
                         .HasPrecision(6, 2)
                         .HasColumnType("numeric(6,2)");
 
                     b.Property<int>("PreferredWorkoutDurationMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("QuestionnaireAnswers")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("QuestionnaireCompletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("QuestionnaireVersion")
                         .HasColumnType("integer");
 
                     b.Property<decimal?>("TargetWeightKg")
@@ -796,7 +804,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
-                    b.Property<decimal>("WeightKg")
+                    b.Property<decimal?>("WeightKg")
                         .HasPrecision(6, 2)
                         .HasColumnType("numeric(6,2)");
 

@@ -36,7 +36,7 @@ class ExerciseDetailScreen extends StatelessWidget {
         ),
         const SizedBox(height: 24),
         PrimaryButton(
-          label: 'BẮT ĐẦU',
+          label: context.watch<AuthProvider>().isGuest ? 'BẮT ĐẦU GIÁO TRÌNH KHÁCH' : 'ĐÃ XEM HƯỚNG DẪN',
           onTap: () {
             final workout = context.read<WorkoutProvider>();
             if (context.read<AuthProvider>().isGuest) {

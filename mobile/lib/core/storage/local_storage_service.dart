@@ -32,6 +32,18 @@ class LocalStorageService {
     await preferences.remove(_sessionModeKey);
   }
 
+  Future<bool> isMeasurementReviewDeferred(String profileId) async {
+    final preferences = await SharedPreferences.getInstance();
+    final until = DateTime.tryParse(preferences.getString('measurement_review_after_$profileId') ?? '');
+    return until != null && DateTime.now().isBefore(until);
+  }
+
+  Future<void> deferMeasurementReview(String profileId) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setString('measurement_review_after_$profileId',
+      DateTime.now().add(const Duration(days: 30)).toIso8601String());
+  }
+
   Future<bool> isNewDebugProcess() async {
     final preferences = await SharedPreferences.getInstance();
     final previousProcess = preferences.getInt(_debugProcessKey);

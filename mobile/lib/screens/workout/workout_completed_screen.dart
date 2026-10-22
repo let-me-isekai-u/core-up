@@ -80,7 +80,7 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
                       ),
                       const SizedBox(height: 6),
                       const Text(
-                        'Kết quả này sẽ không được lưu. Đăng nhập để theo dõi lịch sử, cân nặng và nhận kế hoạch cá nhân hóa.',
+                        'Kết quả này sẽ không được lưu. Đăng nhập để theo dõi lịch sử, cân nặng và chọn giáo trình chuẩn theo mức.',
                         style: TextStyle(color: muted, height: 1.4),
                       ),
                       const SizedBox(height: 8),

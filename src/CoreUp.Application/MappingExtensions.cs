@@ -14,5 +14,5 @@ internal static class MappingExtensions
         value.Id, value.FullName, value.DateOfBirth, value.Gender,
         value.HeightCm, value.WeightKg, value.TargetWeightKg,
         value.FitnessLevel, value.Goal, value.TrainingDaysPerWeek,
-        value.PreferredWorkoutDurationMinutes, value.Bmi, value.BmiCategory, plan);
+        value.PreferredWorkoutDurationMinutes, value.Bmi, value.BmiCategory, plan, FitnessAssessmentScoring.FromProfile(value));
 }

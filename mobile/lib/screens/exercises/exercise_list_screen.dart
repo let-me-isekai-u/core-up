@@ -53,7 +53,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
             ),
           ),
           const SizedBox(height: 12),
-          SizedBox(
+          if (!context.watch<AuthProvider>().isGuest) SizedBox(
             height: 38,
             child: ListView(
               padding: const EdgeInsets.symmetric(horizontal: 20),

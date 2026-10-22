@@ -31,9 +31,27 @@ public sealed class WorkoutPlanService(IApplicationDbContext db)
     {
         var profile = await db.UserProfiles.SingleOrDefaultAsync(x => x.UserId == userId, ct)
             ?? throw new AppException(400, "Complete your profile before generating a workout plan.");
+        if (profile.QuestionnaireCompletedAt is null)
+            throw new AppException(400, "Hãy hoàn tất questionnaire và xác nhận mức tập trước.");
+        return await ApplyStandardAsync(profile, ct);
+    }
+
+    // Profile/assessment and active-plan replacement are persisted in one SaveChanges transaction.
+    internal async Task<WorkoutPlanResponse> ApplyStandardAsync(UserProfile profile, CancellationToken ct)
+    {
+        var userId = profile.UserId;
         var exercises = await db.Exercises.Where(x => x.IsActive && x.MuscleGroup == "Core").ToListAsync(ct);
         var generated = WorkoutPlanGenerator.Generate(profile, exercises);
         var estimatedMinutes = WorkoutPlanGenerator.EstimateMinutes(generated);
+        var name = $"{profile.FitnessLevel} Core Plan";
+        var existing = await db.WorkoutPlans.Include(x => x.Exercises).ThenInclude(x => x.Exercise)
+            .SingleOrDefaultAsync(x => x.UserId == userId && x.IsActive, ct);
+        if (existing is not null && existing.Name == name && existing.Description?.StartsWith(WorkoutPlanGenerator.Version) == true &&
+            existing.Difficulty == profile.FitnessLevel && Matches(existing, generated))
+        {
+            await db.SaveChangesAsync(ct);
+            return Map(existing);
+        }
 
         var activePlans = await db.WorkoutPlans.Where(x => x.UserId == userId && x.IsActive).ToListAsync(ct);
         foreach (var active in activePlans)
@@ -46,9 +64,9 @@ public sealed class WorkoutPlanService(IApplicationDbContext db)
         var plan = new WorkoutPlan
         {
             Id = Guid.NewGuid(), UserId = userId,
-            Name = $"{generated.Max(x => x.Exercise.Difficulty)} Core",
-            Description = $"Core stability: {generated.Count} exercises. Your selected level is {profile.FitnessLevel}; this session uses available exercises up to {generated.Max(x => x.Exercise.Difficulty)}. Practice these movements with control before progressing. Session length is an estimate including breathing and rest; you do not need to fill the requested time. Rest longer or stop if you lose control or feel pain. Abdominal training does not reduce fat only around the belly.",
-            Goal = profile.Goal, Difficulty = generated.Max(x => x.Exercise.Difficulty),
+            Name = name,
+            Description = $"{WorkoutPlanGenerator.Version}: Giáo trình Core chuẩn theo mức, dùng chung cấu trúc cho mọi tài khoản Free cùng mức. Không điều chỉnh theo BMI, cân nặng, giới tính hay số phút mong muốn. Làm theo hướng dẫn từng bài; nghỉ thêm hoặc dừng khi đau/mất kiểm soát tư thế. Tập bụng không làm giảm mỡ riêng vùng bụng.",
+            Goal = FitnessGoal.BuildMuscle, Difficulty = profile.FitnessLevel,
             EstimatedDurationMinutes = estimatedMinutes,
             IsActive = true, IsGenerated = true, CreatedAt = now
         };
@@ -68,6 +86,15 @@ public sealed class WorkoutPlanService(IApplicationDbContext db)
         db.WorkoutPlans.Add(plan);
         await db.SaveChangesAsync(ct);
         return Map(plan);
+    }
+
+    private static bool Matches(WorkoutPlan plan, IReadOnlyList<GeneratedExercise> generated)
+    {
+        var current = plan.Exercises.OrderBy(x => x.Order).ToList();
+        return current.Count == generated.Count && current.Zip(generated).All(pair =>
+            pair.First.ExerciseId == pair.Second.Exercise.Id && pair.First.Sets == pair.Second.Sets &&
+            pair.First.Reps == pair.Second.Reps && pair.First.DurationSeconds == pair.Second.DurationSeconds &&
+            pair.First.RestSeconds == pair.Second.RestSeconds);
     }
 
     private IQueryable<WorkoutPlan> PlanQuery() => db.WorkoutPlans.AsNoTracking()
