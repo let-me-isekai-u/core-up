@@ -3,79 +3,15 @@ import 'package:flutter/foundation.dart';
 
 import 'auth_provider.dart';
 
-const guestExercises = <Map<String, dynamic>>[
-  {
-    'id': 'g1',
-    'slug': 'bodyweight-squat',
-    'name': 'Squat không tạ',
-    'muscleGroup': 'Legs',
-    'difficulty': 'Beginner',
-    'description':
-        'Hạ hông có kiểm soát, giữ lưng thẳng và đầu gối cùng hướng mũi chân.',
-  },
-  {
-    'id': 'g2',
-    'slug': 'bicycle-crunch',
-    'name': 'Gập bụng đạp xe',
-    'muscleGroup': 'Core',
-    'difficulty': 'Intermediate',
-    'description':
-        'Luân phiên đưa khuỷu tay về phía đầu gối đối diện, siết cơ bụng.',
-  },
-  {
-    'id': 'g3',
-    'slug': 'push-up',
-    'name': 'Chống đẩy',
-    'muscleGroup': 'Chest',
-    'difficulty': 'Intermediate',
-    'description':
-        'Giữ thân người thành một đường thẳng và hạ ngực có kiểm soát.',
-  },
-  {
-    'id': 'g4',
-    'slug': 'glute-bridge',
-    'name': 'Nâng hông',
-    'muscleGroup': 'Legs',
-    'difficulty': 'Beginner',
-    'description': 'Siết mông và nâng hông, không ưỡn quá mức phần lưng dưới.',
-  },
-  {
-    'id': 'g5',
-    'slug': 'plank',
-    'name': 'Plank',
-    'muscleGroup': 'Core',
-    'difficulty': 'Beginner',
-    'description': 'Giữ vai, hông và gót chân trên một đường thẳng.',
-  },
-  {
-    'id': 'g6',
-    'slug': 'mountain-climber',
-    'name': 'Leo núi tại chỗ',
-    'muscleGroup': 'Full Body',
-    'difficulty': 'Advanced',
-    'description': 'Kéo gối luân phiên về ngực và giữ thân trên ổn định.',
-  },
-  {
-    'id': 'g7',
-    'slug': 'reverse-lunge',
-    'name': 'Chùng chân sau',
-    'muscleGroup': 'Legs',
-    'difficulty': 'Intermediate',
-    'description': 'Bước một chân ra sau và hạ gối, giữ trọng tâm cân bằng.',
-  },
-  {
-    'id': 'g8',
-    'slug': 'shoulder-tap',
-    'name': 'Plank chạm vai',
-    'muscleGroup': 'Arms',
-    'difficulty': 'Advanced',
-    'description':
-        'Từ tư thế plank, chạm tay sang vai đối diện và hạn chế xoay hông.',
-  },
-];
+import '../models/workout/guest_catalog.dart';
+import '../services/ad_policy.dart';
+
+export '../models/workout/guest_catalog.dart';
 
 class WorkoutProvider extends ChangeNotifier {
-  WorkoutProvider(this.api);
+  WorkoutProvider(this.api, {this.adPolicy = const AdPolicy()});
+  final AdPolicy adPolicy;
+  bool get shouldShowAds => adPolicy.shouldShowAds(isGuest: session?['isGuest'] == true);
   final AuthProvider api;
   List<Map<String, dynamic>> exercises = [], weights = [], history = [];
   Map<String, dynamic>? plan, session, progress;
@@ -162,6 +98,7 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   Future<bool> start() async {
+    error = null;
     try {
       session = Map<String, dynamic>.from(
         (await api.dio.post(
@@ -179,6 +116,7 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   void startGuestWorkout() {
+    error = null;
     final selected = guestExercises.take(6).toList();
     final startedAt = DateTime.now().toUtc().toIso8601String();
     session = {
@@ -191,10 +129,11 @@ class WorkoutProvider extends ChangeNotifier {
             (exercise) => {
               'id': 'session-${exercise['id']}',
               'exercise': Map<String, dynamic>.from(exercise),
-              'targetSets': 2,
-              'targetReps': exercise['slug'] == 'plank' ? null : 12,
-              'targetDurationSeconds': exercise['slug'] == 'plank' ? 30 : null,
-              'restSeconds': 30,
+              'targetSets': exercise['defaultSets'],
+              'targetReps': exercise['defaultReps'],
+              'targetDurationSeconds': exercise['defaultDurationSeconds'],
+              'restSeconds': exercise['defaultRestSeconds'],
+              'isCompleted': false,
             },
           )
           .toList(),
@@ -202,42 +141,86 @@ class WorkoutProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Keep Guest ownership on the session, independent of later auth changes.
   Future<void> complete(Map<String, dynamic> exercise) async {
-    if (api.isGuest) {
-      session!['completedExercises'] =
-          (session!['completedExercises'] as int) + 1;
+    final active = session!;
+    final rows = active['exercises'] as List;
+    if (rows.any((row) => row['id'] == exercise['id'] && row['isCompleted'] == true)) return;
+    error = null;
+    try {
+      if (active['isGuest'] == true) {
+        final row = rows.firstWhere((row) => row['id'] == exercise['id']);
+        row['isCompleted'] = true;
+        row['completedSets'] = exercise['targetSets'];
+        active['completedExercises'] = rows.where((row) => row['isCompleted'] == true).length;
+      } else {
+        session = Map<String, dynamic>.from((await api.dio.put(
+          '/api/workout-sessions/${active['id']}/exercises/${exercise['id']}',
+          data: {
+            'completedSets': exercise['targetSets'],
+            'completedReps': (exercise['targetReps'] ?? 0) * exercise['targetSets'],
+            'completedDurationSeconds': (exercise['targetDurationSeconds'] ?? 0) * exercise['targetSets'],
+            'isCompleted': true,
+          },
+        )).data);
+      }
+    } catch (e) {
+      error = api.message(e);
+      rethrow;
+    } finally {
       notifyListeners();
-      return;
     }
-    session = Map<String, dynamic>.from(
-      (await api.dio.put(
-        '/api/workout-sessions/' +
-            session!['id'] +
-            '/exercises/' +
-            exercise['id'],
-        data: {
-          'completedSets': exercise['targetSets'],
-          'completedReps': exercise['targetReps'] ?? 0,
-          'completedDurationSeconds': exercise['targetDurationSeconds'] ?? 0,
-          'isCompleted': true,
-        },
-      )).data,
-    );
-    notifyListeners();
   }
 
   Future<void> end({int? durationSeconds}) async {
-    if (api.isGuest) {
-      session!['durationSeconds'] = durationSeconds ?? 0;
-      notifyListeners();
-      return;
+    final active = session!;
+    if ((active['exercises'] as List).any((row) => row['isCompleted'] != true)) {
+      throw StateError('Chưa hoàn thành tất cả bài tập.');
     }
-    session = Map<String, dynamic>.from(
-      (await api.dio.post(
-        '/api/workout-sessions/' + session!['id'] + '/complete',
-      )).data,
-    );
-    notifyListeners();
+    error = null;
+    try {
+      if (active['isGuest'] == true) {
+        active['durationSeconds'] = durationSeconds ?? 0;
+        active['status'] = 'Completed';
+      } else {
+        // Reconcile a lost response before retrying the non-idempotent complete endpoint.
+        final latest = Map<String, dynamic>.from(
+          (await api.dio.get('/api/workout-sessions/${active['id']}')).data,
+        );
+        session = latest['status'] == 'Completed' ? latest : Map<String, dynamic>.from(
+          (await api.dio.post('/api/workout-sessions/${active['id']}/complete')).data,
+        );
+      }
+    } catch (e) {
+      error = api.message(e);
+      rethrow;
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> cancel() async {
+    final active = session;
+    if (active == null) return;
+    error = null;
+    try {
+      if (active['isGuest'] != true) {
+        final latest = Map<String, dynamic>.from(
+          (await api.dio.get('/api/workout-sessions/${active['id']}')).data,
+        );
+        if (latest['status'] == 'InProgress') {
+          await api.dio.post('/api/workout-sessions/${active['id']}/cancel');
+        } else if (latest['status'] != 'Cancelled') {
+          throw StateError('Buổi tập đã kết thúc. Hãy thử lưu lại để đồng bộ kết quả.');
+        }
+      }
+      session = null;
+    } catch (e) {
+      error = api.message(e);
+      rethrow;
+    } finally {
+      notifyListeners();
+    }
   }
 
   Future<bool> weight(double kg) async {

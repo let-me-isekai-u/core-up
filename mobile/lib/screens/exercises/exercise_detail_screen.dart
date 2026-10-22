@@ -9,18 +9,7 @@ class ExerciseDetailScreen extends StatelessWidget {
     body: ListView(
       padding: const EdgeInsets.all(24),
       children: [
-        Container(
-          height: 220,
-          decoration: BoxDecoration(
-            color: surface,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Icon(
-            exerciseIcon(item['muscleGroup'].toString()),
-            size: 72,
-            color: blue,
-          ),
-        ),
+        ExerciseVisual(slug: item['slug'].toString()),
         const SizedBox(height: 24),
         Text(
           item['name'],

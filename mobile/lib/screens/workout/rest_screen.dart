@@ -1,132 +1,45 @@
 part of '../core_up_screens.dart';
 
-class RestScreen extends StatefulWidget {
-  const RestScreen({super.key, required this.seconds, required this.next});
-  final int seconds;
+/// The session owns the clock, pause state and transition guard.
+class RestScreen extends StatelessWidget {
+  const RestScreen({super.key, required this.remaining, required this.next,
+    required this.paused, required this.onStart, required this.onAddTime});
+  final int remaining;
   final Map<String, dynamic> next;
-  @override
-  State<RestScreen> createState() => _RestScreenState();
-}
-
-class _RestScreenState extends State<RestScreen> {
-  late int remaining;
-  Timer? timer;
-  @override
-  void initState() {
-    super.initState();
-    remaining = widget.seconds;
-    timer = Timer.periodic(const Duration(seconds: 1), (_) {
-      if (!mounted) return;
-      if (remaining <= 1) {
-        timer?.cancel();
-        Navigator.of(context).pop();
-      } else {
-        setState(() => remaining--);
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    super.dispose();
-  }
+  final bool paused;
+  final VoidCallback onStart, onAddTime;
 
   @override
   Widget build(BuildContext context) {
-    final exercise = Map<String, dynamic>.from(widget.next['exercise']);
-    final pulse = remaining <= 3 ? 1.06 : 1.0;
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const SizedBox(height: 24),
-              const Text(
-                'NGHỈ',
-                style: TextStyle(
-                  color: blue,
-                  letterSpacing: 3,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const Spacer(),
-              TweenAnimationBuilder<double>(
-                tween: Tween(end: pulse),
-                duration: const Duration(milliseconds: 300),
-                builder: (_, scale, child) =>
-                    Transform.scale(scale: scale, child: child),
-                child: SizedBox(
-                  width: 210,
-                  height: 210,
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      SizedBox.expand(
-                        child: CircularProgressIndicator(
-                          value: remaining / widget.seconds,
-                          strokeWidth: 10,
-                          backgroundColor: Colors.white12,
-                        ),
-                      ),
-                      Text(
-                        formatDuration(remaining),
-                        style: const TextStyle(
-                          fontSize: 52,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 28),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () => setState(() => remaining += 10),
-                      child: const Text('+10 GIÂY'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: FilledButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text('BỎ QUA'),
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              const Align(
-                alignment: Alignment.centerLeft,
-                child: SectionLabel('TIẾP THEO'),
-              ),
-              SurfaceCard(
-                child: ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: CircleAvatar(
-                    backgroundColor: AppColors.surfaceElevated,
-                    child: Icon(
-                      exerciseIcon(exercise['muscleGroup'].toString()),
-                      color: blue,
-                    ),
-                  ),
-                  title: Text(
-                    exercise['name'].toString(),
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                  subtitle: Text(
-                    '${widget.next['targetSets']} hiệp × ${widget.next['targetReps'] ?? widget.next['targetDurationSeconds']} ${widget.next['targetDurationSeconds'] == null ? 'lần' : 'giây'}',
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+    final exercise = Map<String, dynamic>.from(next['exercise']);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SectionLabel('NGHỈ'),
+        Text(formatDuration(remaining), textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 52, fontWeight: FontWeight.w800)),
+        const SizedBox(height: 24),
+        const SectionLabel('CHUẨN BỊ TIẾP THEO'),
+        Text(exercise['name'].toString(), style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        Text(localizeValue(exercise['difficulty']?.toString() ?? 'Beginner')),
+        Text('${next['targetSets']} hiệp × ${next['targetReps'] ?? next['targetDurationSeconds']} ${next['targetDurationSeconds'] == null ? 'lần' : 'giây'}'),
+        const SizedBox(height: 12),
+        Text(_preparation(exercise), style: const TextStyle(color: muted, height: 1.5)),
+        const SizedBox(height: 24),
+        FilledButton(onPressed: paused ? null : onStart, child: const Text('BẮT ĐẦU NGAY')),
+        OutlinedButton(onPressed: onAddTime, child: const Text('+5 GIÂY')),
+      ],
     );
   }
+}
+
+String _preparation(Map<String, dynamic> exercise) {
+  final text = (exercise['instructions'] ?? exercise['description'] ?? '').toString();
+  final steps = text.split(RegExp(r'\s+(?=\d+\.\s)'));
+  return steps.take(3).map((step) {
+    // Keep the rest preview short; the session retains the full instructions.
+    final plain = step.replaceFirst(RegExp(r'^\d+\.\s*'), '');
+    return plain.split(RegExp(r'(?<=\.)\s+')).first;
+  }).join('\n');
 }

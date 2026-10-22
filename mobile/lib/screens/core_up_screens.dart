@@ -12,6 +12,7 @@ import '../core/utils/minimum_loading_duration.dart';
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/workout_provider.dart';
+import '../widgets/workout/exercise_visual.dart';
 import 'onboarding/onboarding_screen.dart';
 
 part 'splash/splash_screen.dart';
@@ -24,6 +25,7 @@ part 'exercises/exercise_list_screen.dart';
 part 'exercises/exercise_detail_screen.dart';
 part 'workout/workout_session_screen.dart';
 part 'workout/rest_screen.dart';
+part 'workout/simulated_ad.dart';
 part 'workout/workout_completed_screen.dart';
 part 'progress/progress_screen.dart';
 part 'profile/profile_screen.dart';

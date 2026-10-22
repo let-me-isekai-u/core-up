@@ -26,7 +26,7 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
   @override
   Widget build(BuildContext context) {
     final session = context.watch<WorkoutProvider>().session;
-    final guest = context.watch<AuthProvider>().isGuest;
+    final guest = session?['isGuest'] == true;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -86,7 +86,7 @@ class _WorkoutCompleteScreenState extends State<WorkoutCompleteScreen> {
                       const SizedBox(height: 8),
                       TextButton(
                         onPressed: () => openLogin(context),
-                        child: const Text('ĐĂNG NHẬP ĐỂ LƯU TIẾN TRÌNH'),
+                        child: const Text('ĐĂNG NHẬP CHO BUỔI TẬP SAU'),
                       ),
                     ],
                   ),

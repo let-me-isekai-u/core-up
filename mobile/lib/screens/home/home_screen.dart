@@ -66,7 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'CoreUp Quick Workout',
+              'Core Beginner · Khách',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
@@ -76,11 +76,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const WorkoutFeature(
               icon: Icons.schedule_rounded,
-              label: 'Khoảng 15–20 phút',
+              label: 'Giáo trình cố định · Mới bắt đầu',
             ),
             const WorkoutFeature(
               icon: Icons.home_work_outlined,
-              label: 'Không cần thiết bị',
+              label: 'Chuẩn bị thảm tập',
             ),
             const SizedBox(height: 20),
             PrimaryButton(
@@ -168,6 +168,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         Navigator.of(
                           context,
                         ).push(fadeRoute(const WorkoutSessionScreen()));
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                          content: Text(workout.error ?? 'Chưa bắt đầu được buổi tập. Vui lòng thử lại.'),
+                        ));
                       }
                     },
               style: ElevatedButton.styleFrom(

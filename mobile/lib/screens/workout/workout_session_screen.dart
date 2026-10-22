@@ -1,289 +1,278 @@
 part of '../core_up_screens.dart';
 
+enum _WorkoutPhase { preview, active, savingExercise, afterExercise, ad, rest, finishing, finishError }
+
 class WorkoutSessionScreen extends StatefulWidget {
   const WorkoutSessionScreen({super.key});
   @override
   State<WorkoutSessionScreen> createState() => _WorkoutSessionScreenState();
 }
 
-class _WorkoutSessionScreenState extends State<WorkoutSessionScreen> {
-  var _index = 0;
-  var _currentSet = 1;
-  var _paused = false;
-  var _saving = false;
+class _WorkoutSessionScreenState extends State<WorkoutSessionScreen>
+    with WidgetsBindingObserver {
+  int _index = 0, _currentSet = 1, _remaining = 0, _restRemaining = 0, _elapsed = 0;
+  bool _paused = false, _foreground = true, _exiting = false, _left = false;
+  bool _betweenSets = false, _setFinished = false;
+  String? _error;
   Timer? _timer;
-  final _elapsed = ValueNotifier(0);
+  _WorkoutPhase _phase = _WorkoutPhase.preview;
+
+  bool get _blocked => _paused || !_foreground || _exiting || _left;
+  bool get _saving => _phase == _WorkoutPhase.savingExercise || _phase == _WorkoutPhase.finishing;
+  WorkoutProvider get _workout => context.read<WorkoutProvider>();
+  List get _exercises => _workout.session?['exercises'] as List? ?? [];
+  Map<String, dynamic> get _current => Map<String, dynamic>.from(_exercises[_index]);
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final value = context.read<WorkoutProvider>().session?['startedAt'];
-      if (value is String) {
-        _updateTime(value);
-        _timer = Timer.periodic(const Duration(seconds: 1), (_) {
-          if (!_paused) _elapsed.value++;
+    WidgetsBinding.instance.addObserver(this);
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (!mounted || _blocked) return;
+      if (_phase == _WorkoutPhase.active && !_setFinished) {
+        setState(() {
+          final timed = _current['targetDurationSeconds'] != null;
+          if (!timed || _remaining > 0) _elapsed++;
+          if (timed && _remaining > 0) _remaining--;
         });
+        // Require explicit confirmation after the hold, so no ad interrupts posture recovery.
+      } else if (_phase == _WorkoutPhase.rest) {
+        if (_restRemaining > 0) setState(() => _restRemaining--);
+        if (_restRemaining == 0) _startAfterRest();
+      } else if (_phase == _WorkoutPhase.afterExercise) {
+        _advanceCompletedExercise();
       }
     });
   }
 
-  void _updateTime(String startedAt) {
-    if (_paused) return;
-    final start = DateTime.tryParse(startedAt);
-    if (start != null)
-      _elapsed.value = DateTime.now()
-          .toUtc()
-          .difference(start.toUtc())
-          .inSeconds;
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!mounted) return;
+    setState(() {
+      _foreground = state == AppLifecycleState.resumed;
+      // Never resume a hold or rest countdown automatically after backgrounding.
+      if (!_foreground && _phase != _WorkoutPhase.ad) _paused = true;
+    });
   }
 
   @override
   void dispose() {
+    _left = true;
     _timer?.cancel();
-    _elapsed.dispose();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  void _startSet() {
+    if (_blocked) return;
+    setState(() {
+      _remaining = (_current['targetDurationSeconds'] as num? ?? 0).toInt();
+      _setFinished = false;
+      _error = null;
+      _phase = _WorkoutPhase.active;
+    });
+  }
+
+  void _startAfterRest() {
+    if (_blocked || _phase != _WorkoutPhase.rest) return;
+    if (_betweenSets) {
+      _currentSet++;
+    } else {
+      _index++;
+      _currentSet = 1;
+    }
+    _startSet();
+  }
+
+  void _rest({required bool betweenSets}) {
+    setState(() {
+      _betweenSets = betweenSets;
+      _restRemaining = (_current['restSeconds'] as num? ?? 0).toInt();
+      _phase = _WorkoutPhase.rest;
+    });
+  }
+
+  Future<void> _finishSet() async {
+    if (_blocked || _phase != _WorkoutPhase.active) return;
+    final current = _current;
+    if (current['targetDurationSeconds'] != null && _remaining > 0) return;
+    if (_currentSet < (current['targetSets'] as num).toInt()) {
+      _rest(betweenSets: true);
+      return;
+    }
+    setState(() {
+      _setFinished = true;
+      _phase = _WorkoutPhase.savingExercise;
+      _error = null;
+    });
+    try {
+      await _workout.complete(current);
+      if (!mounted || _left) return;
+      setState(() => _phase = _WorkoutPhase.afterExercise);
+      _advanceCompletedExercise();
+    } catch (_) {
+      if (!mounted || _left) return;
+      setState(() {
+        _phase = _WorkoutPhase.active;
+        _error = _workout.error ?? 'Chưa lưu được bài tập. Vui lòng thử lại.';
+      });
+    }
+  }
+
+  void _advanceCompletedExercise() {
+    if (_blocked || _phase != _WorkoutPhase.afterExercise) return;
+    if (_workout.shouldShowAds) {
+      setState(() => _phase = _WorkoutPhase.ad);
+    } else {
+      _afterAd();
+    }
+  }
+
+  void _afterAd() {
+    if (_blocked || (_phase != _WorkoutPhase.ad && _phase != _WorkoutPhase.afterExercise)) return;
+    if (_index == _exercises.length - 1) {
+      _finishWorkout();
+    } else {
+      _rest(betweenSets: false);
+    }
+  }
+
+  Future<void> _finishWorkout() async {
+    if (_blocked || _phase == _WorkoutPhase.finishing) return;
+    setState(() {
+      _phase = _WorkoutPhase.finishing;
+      _error = null;
+    });
+    try {
+      await _workout.end(durationSeconds: _elapsed);
+      if (!mounted || _left) return;
+      _left = true;
+      _timer?.cancel();
+      Navigator.of(context).pushReplacement(fadeRoute(const WorkoutCompleteScreen()));
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _phase = _WorkoutPhase.finishError;
+        _error = _workout.error ?? 'Chưa lưu được buổi tập. Vui lòng thử lại.';
+      });
+    }
+  }
+
+  Future<void> _confirmExit() async {
+    if (_exiting || _left || _saving || _phase == _WorkoutPhase.ad) return;
+    setState(() => _exiting = true);
+    final leave = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Thoát buổi tập?'),
+        content: const Text('Buổi tập sẽ không được ghi nhận hoàn thành.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('Ở LẠI')),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, true), child: const Text('THOÁT')),
+        ],
+      ),
+    );
+    if (!mounted) return;
+    if (leave == true) {
+      try {
+        await _workout.cancel();
+        if (!mounted) return;
+        _left = true;
+        _timer?.cancel();
+        Navigator.of(context).pop();
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          _exiting = false;
+          _paused = true;
+          _error = _workout.error ?? 'Chưa hủy được buổi tập. Vui lòng thử lại.';
+        });
+      }
+    } else {
+      setState(() {
+        _exiting = false;
+        _paused = true;
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final workout = context.watch<WorkoutProvider>();
-    if (_saving) {
-      return const Scaffold(
-        body: CoreUpChibiLoading(message: 'Đang lưu kết quả...'),
-      );
+    final exercises = workout.session?['exercises'] as List? ?? [];
+    Widget body;
+    if (_phase == _WorkoutPhase.ad) {
+      body = SimulatedAd(paused: _blocked, onClosed: _afterAd);
+    } else if (_saving) {
+      body = const Scaffold(body: CoreUpChibiLoading(message: 'Đang lưu kết quả...'));
+    } else if (exercises.isEmpty) {
+      body = const Scaffold(body: Center(child: Text('Không có buổi tập đang hoạt động.')));
+    } else {
+      final current = Map<String, dynamic>.from(exercises[_index]);
+      final exercise = Map<String, dynamic>.from(current['exercise']);
+      final duration = current['targetDurationSeconds'] != null;
+      final preview = _phase == _WorkoutPhase.preview;
+      body = Scaffold(body: SafeArea(child: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          Row(children: [
+            IconButton(onPressed: _exiting ? null : _confirmExit, icon: const Icon(Icons.close_rounded)),
+            Expanded(child: Text('Bài ${_index + 1} / ${exercises.length}')),
+            TextButton.icon(
+              onPressed: _exiting ? null : () => setState(() => _paused = !_paused),
+              icon: Icon(_paused ? Icons.play_arrow_rounded : Icons.pause_rounded),
+              label: Text(_paused ? 'Tiếp tục' : 'Tạm dừng'),
+            ),
+          ]),
+          LinearProgressIndicator(value: _index / exercises.length),
+          const SizedBox(height: 12),
+          Text('Thời gian vận động • ${formatDuration(_elapsed)}', textAlign: TextAlign.center),
+          if (_paused) const Padding(padding: EdgeInsets.all(12), child: Text('Đang tạm dừng', textAlign: TextAlign.center)),
+          if (_error != null) Padding(padding: const EdgeInsets.all(12), child: Text(_error!, style: const TextStyle(color: Colors.redAccent))),
+          const SizedBox(height: 16),
+          if (_phase == _WorkoutPhase.rest)
+            RestScreen(
+              remaining: _restRemaining,
+              next: Map<String, dynamic>.from(exercises[_betweenSets ? _index : _index + 1]),
+              paused: _blocked,
+              onStart: _startAfterRest,
+              onAddTime: () => setState(() => _restRemaining += 5),
+            )
+          else ...[
+            ExerciseVisual(slug: exercise['slug'].toString()),
+            const SizedBox(height: 20),
+            Text(exercise['name'].toString(), textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
+            const SizedBox(height: 12),
+            Text(localizeValue(exercise['difficulty']?.toString() ?? 'Beginner'), textAlign: TextAlign.center),
+            Text('${current['targetSets']} hiệp × ${current['targetReps'] ?? current['targetDurationSeconds']} ${duration ? 'giây' : 'lần'}', textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            if (_phase == _WorkoutPhase.active) ...[
+              Text('HIỆP $_currentSet / ${current['targetSets']}', textAlign: TextAlign.center),
+              Text(duration ? formatDuration(_remaining) : '${current['targetReps']} LẦN', textAlign: TextAlign.center,
+                  style: const TextStyle(fontSize: 46, fontWeight: FontWeight.w800)),
+              Text(duration ? 'Hạ tư thế khi cần. Xác nhận sau khi kết thúc thời gian giữ.' : 'Tự đếm số lần và xác nhận khi hoàn thành hiệp.', textAlign: TextAlign.center),
+            ],
+            const SizedBox(height: 12),
+            Text(_preparation(exercise), style: const TextStyle(color: muted, height: 1.5)),
+            if ((exercise['instructions']?.toString() ?? '').isNotEmpty)
+              ExpansionTile(title: const Text('Hướng dẫn đầy đủ'), children: [Text(exercise['instructions'].toString())]),
+            const SizedBox(height: 24),
+            FilledButton(
+              onPressed: _blocked ? null : preview ? _startSet
+                  : _phase == _WorkoutPhase.finishError ? _finishWorkout
+                  : _phase == _WorkoutPhase.active && (!duration || _remaining == 0) ? _finishSet : null,
+              child: Text(preview ? 'BẮT ĐẦU' : _phase == _WorkoutPhase.finishError ? 'THỬ LƯU BUỔI TẬP LẠI'
+                  : _setFinished ? 'THỬ LƯU BÀI TẬP LẠI' : 'HOÀN THÀNH HIỆP'),
+            ),
+          ],
+        ],
+      )));
     }
-    final exercises = (workout.session?['exercises'] as List? ?? [])
-        .cast<dynamic>();
-    if (exercises.isEmpty) {
-      return const Scaffold(
-        body: CoreUpChibiLoading(message: 'Đang chuẩn bị buổi tập...'),
-      );
-    }
-    final current = Map<String, dynamic>.from(exercises[_index]);
-    final exercise = Map<String, dynamic>.from(current['exercise']);
-    final targetSets = (current['targetSets'] as num? ?? 1).toInt();
-    final targetValue =
-        current['targetReps'] ?? current['targetDurationSeconds'] ?? 0;
-    final usesDuration = current['targetDurationSeconds'] != null;
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult: (_, __) => _confirmExit(),
-      child: Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      onPressed: _confirmExit,
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                    Text(
-                      '${_index + 1} / ${exercises.length}',
-                      style: const TextStyle(
-                        color: blue,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => setState(() => _paused = !_paused),
-                      icon: Icon(
-                        _paused
-                            ? Icons.play_arrow_rounded
-                            : Icons.pause_rounded,
-                      ),
-                      label: Text(_paused ? 'Tiếp tục' : 'Tạm dừng'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                LinearProgressIndicator(
-                  value: (_index + 1) / exercises.length,
-                  minHeight: 7,
-                ),
-                const SizedBox(height: 10),
-                ValueListenableBuilder<int>(
-                  valueListenable: _elapsed,
-                  builder: (_, value, __) => Text(
-                    'Thời gian • ' + formatDuration(value),
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(color: muted),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 390,
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 420),
-                    reverseDuration: const Duration(milliseconds: 320),
-                    transitionBuilder: (child, animation) => FadeTransition(
-                      opacity: animation,
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: const Offset(.06, 0),
-                          end: Offset.zero,
-                        ).animate(animation),
-                        child: child,
-                      ),
-                    ),
-                    child: Column(
-                      key: ValueKey(current['id']),
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        SizedBox(
-                          height: 190,
-                          child: Center(
-                            child: Container(
-                              width: 116,
-                              height: 116,
-                              decoration: const BoxDecoration(
-                                color: AppColors.surfaceElevated,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                exerciseIcon(
-                                  exercise['muscleGroup'].toString(),
-                                ),
-                                size: 58,
-                                color: blue,
-                              ),
-                            ),
-                          ),
-                        ),
-                        Text(
-                          exercise['name'],
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          'HIỆP $_currentSet / $targetSets',
-                          style: const TextStyle(
-                            color: blue,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.1,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          targetValue.toString(),
-                          style: const TextStyle(
-                            fontSize: 46,
-                            height: 1,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        Text(
-                          usesDuration ? 'GIÂY' : 'LẦN',
-                          style: const TextStyle(
-                            color: muted,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1.4,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                PrimaryButton(
-                  label: _currentSet < targetSets
-                      ? 'HOÀN THÀNH HIỆP'
-                      : _index == exercises.length - 1
-                      ? 'HOÀN THÀNH BUỔI TẬP'
-                      : 'XONG & TIẾP THEO',
-                  onTap: () async {
-                    final rest = current['restSeconds'] as int? ?? 0;
-                    if (_currentSet < targetSets) {
-                      if (rest > 0) {
-                        await Navigator.of(context).push(
-                          fadeRoute(RestScreen(seconds: rest, next: current)),
-                        );
-                      }
-                      if (mounted) setState(() => _currentSet++);
-                      return;
-                    }
-                    final authenticated = context
-                        .read<AuthProvider>()
-                        .isAuthenticated;
-                    if (authenticated) setState(() => _saving = true);
-                    if (authenticated) {
-                      await withMinimumLoading(() async {
-                        await workout.complete(current);
-                        if (_index == exercises.length - 1) {
-                          await workout.end(durationSeconds: _elapsed.value);
-                        }
-                      });
-                    } else {
-                      await workout.complete(current);
-                      if (_index == exercises.length - 1) {
-                        await workout.end(durationSeconds: _elapsed.value);
-                      }
-                    }
-                    if (!mounted) return;
-                    if (authenticated) setState(() => _saving = false);
-                    if (_index == exercises.length - 1) {
-                      if (mounted)
-                        Navigator.of(context).pushReplacement(
-                          fadeRoute(const WorkoutCompleteScreen()),
-                        );
-                    } else {
-                      if (rest > 0 && mounted) {
-                        final next = Map<String, dynamic>.from(
-                          exercises[_index + 1],
-                        );
-                        await Navigator.of(context).push(
-                          fadeRoute(RestScreen(seconds: rest, next: next)),
-                        );
-                      }
-                      if (mounted) {
-                        setState(() {
-                          _index++;
-                          _currentSet = 1;
-                        });
-                      }
-                    }
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+      onPopInvokedWithResult: (didPop, _) { if (!didPop) _confirmExit(); },
+      child: body,
     );
-  }
-
-  Future<void> _confirmExit() async {
-    final leave = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Thoát buổi tập?'),
-        content: const Text(
-          'Tiến độ của buổi tập này sẽ không được hoàn thành.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('TIẾP TỤC TẬP'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text(
-              'THOÁT',
-              style: TextStyle(color: Colors.redAccent),
-            ),
-          ),
-        ],
-      ),
-    );
-    if (leave == true && mounted) Navigator.of(context).pop();
   }
 }
