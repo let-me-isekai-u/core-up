@@ -101,7 +101,7 @@ void main() {
       final storage = LocalStorageService();
       final auth = AuthProvider(storage);
       final adapter = AuthAdapter(
-        (o) => o.path == '/api/profile'
+        (o) => o.path == '/api/auth/me'
             ? jsonBody('{"detail":"Profile was not found."}', 404)
             : jsonBody(
                 '{"userId":"u1","email":"user@example.com","accessToken":"test-token","needsProfile":true}',

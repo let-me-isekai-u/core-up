@@ -3,6 +3,9 @@ namespace CoreUp.Domain;
 public sealed class User
 {
     public Guid Id { get; set; }
+    public bool EmailVerified { get; set; }
+    public bool VerificationRequired { get; set; }
+    public int TokenVersion { get; set; }
     public string Username { get; set; } = string.Empty;
     public string NormalizedUsername { get; private set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
@@ -130,5 +133,25 @@ public sealed class WeightRecord
     public Guid UserId { get; set; }
     public decimal WeightKg { get; set; }
     public DateTime RecordedAt { get; set; }
+    public User User { get; set; } = null!;
+}
+
+public sealed class EmailChallenge
+{
+    public Guid Id { get; set; }
+    public Guid UserId { get; set; }
+    public string Purpose { get; set; } = string.Empty;
+    public string CodeHash { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+    public DateTime SentAt { get; set; }
+    public int Attempts { get; set; }
+    public bool Consumed { get; set; }
+    public int Revision { get; set; }
+    public int TokenVersion { get; set; }
+    public DateTime SendWindowStart { get; set; }
+    public int SendCount { get; set; }
+    public string? ResetGrantHash { get; set; }
+    public DateTime? ResetGrantExpiresAt { get; set; }
+    public bool ResetGrantConsumed { get; set; }
     public User User { get; set; } = null!;
 }

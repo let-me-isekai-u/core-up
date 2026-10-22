@@ -7,6 +7,7 @@ namespace CoreUp.Infrastructure.Persistence;
 public sealed class CoreUpDbContext(DbContextOptions<CoreUpDbContext> options)
     : DbContext(options), IApplicationDbContext
 {
+    public DbSet<EmailChallenge> EmailChallenges => Set<EmailChallenge>();
     public DbSet<User> Users => Set<User>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
@@ -24,6 +25,7 @@ public sealed class CoreUpDbContext(DbContextOptions<CoreUpDbContext> options)
         {
             entity.ToTable("users");
             entity.HasKey(x => x.Id);
+            entity.Property(x => x.TokenVersion).IsConcurrencyToken();
             entity.Property(x => x.Username).HasMaxLength(24).IsRequired();
             entity.Property(x => x.NormalizedUsername).HasMaxLength(24)
                 .HasComputedColumnSql("lower(\"Username\")", stored: true);
@@ -31,6 +33,18 @@ public sealed class CoreUpDbContext(DbContextOptions<CoreUpDbContext> options)
             entity.Property(x => x.Email).HasMaxLength(320).IsRequired();
             entity.Property(x => x.PasswordHash).HasMaxLength(1000).IsRequired();
             entity.HasIndex(x => x.Email).IsUnique();
+        });
+
+        modelBuilder.Entity<EmailChallenge>(entity =>
+        {
+            entity.ToTable("email_challenges");
+            entity.HasKey(x => x.Id);
+            entity.Property(x => x.Purpose).HasMaxLength(20).IsRequired();
+            entity.Property(x => x.CodeHash).HasMaxLength(64).IsRequired();
+            entity.Property(x => x.ResetGrantHash).HasMaxLength(64);
+            entity.Property(x => x.Revision).IsConcurrencyToken();
+            entity.HasIndex(x => new { x.UserId, x.Purpose }).IsUnique();
+            entity.HasOne(x => x.User).WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<UserProfile>(entity =>

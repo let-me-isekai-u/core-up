@@ -60,6 +60,7 @@ public sealed class UsernameAuthenticationTests
         var secondError = await unknownUser.Content.ReadFromJsonAsync<JsonElement>();
         Assert.Equal(firstError.GetProperty("detail").GetString(), secondError.GetProperty("detail").GetString());
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", login.GetProperty("accessToken").GetString());
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/auth/email-verification/verify", new { code = factory.Services.GetRequiredService<TestEmailSender>().Code(email) })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.GetAsync("/api/exercises")).StatusCode);
         // A valid account awaiting profile returns 404, not 401; restore must preserve it.
         Assert.Equal(HttpStatusCode.NotFound, (await client.GetAsync("/api/profile")).StatusCode);
@@ -128,7 +129,7 @@ public sealed class UsernameAuthenticationTests
             var snapshots = new Dictionary<string, string>();
             foreach (var table in tables)
                 snapshots[table] = (string)(await new NpgsqlCommand($"SELECT jsonb_agg(to_jsonb(t) ORDER BY \"Id\")::text FROM {table} t", connection).ExecuteScalarAsync())!;
-            async Task<string> Snapshot() => (string)(await new NpgsqlCommand("SELECT jsonb_agg(to_jsonb(u) - 'Username' - 'NormalizedUsername' ORDER BY \"Id\")::text FROM users u", connection).ExecuteScalarAsync())!;
+            async Task<string> Snapshot() => (string)(await new NpgsqlCommand("SELECT jsonb_agg(to_jsonb(u) - 'Username' - 'NormalizedUsername' - 'EmailVerified' - 'VerificationRequired' - 'TokenVersion' ORDER BY \"Id\")::text FROM users u", connection).ExecuteScalarAsync())!;
             var before = await Snapshot();
             var catalogBefore = (string)(await new NpgsqlCommand("SELECT jsonb_agg(to_jsonb(e) ORDER BY \"Id\")::text FROM exercises e", connection).ExecuteScalarAsync())!;
             await migrator.MigrateAsync();

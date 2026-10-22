@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:core_up_mobile/core/storage/local_storage_service.dart';
 import 'package:core_up_mobile/providers/auth_provider.dart';
 import 'package:core_up_mobile/providers/profile_provider.dart';
@@ -29,7 +30,7 @@ class TestLocalStorage extends LocalStorageService {
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
   testWidgets(
-    'native Flutter register, profile, username login, JWT and restore',
+    'native OTP verification, profile, change and reset password with Mailpit',
     (tester) async {
       const enabled = bool.fromEnvironment('AUTH_PHASE1_TEST_API');
       expect(
@@ -58,7 +59,7 @@ void main() {
           await tester.pump(const Duration(milliseconds: 100));
         }
         expect(finder, findsWidgets);
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 600));
       }
 
       try {
@@ -66,7 +67,7 @@ void main() {
           find.text('Chưa có tài khoản? Tạo tài khoản'),
         );
         await tester.tap(find.text('Chưa có tài khoản? Tạo tài khoản'));
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 600));
         var fields = find.byType(TextFormField);
         await tester.enterText(fields.at(0), name);
         await tester.enterText(fields.at(1), '$name@example.invalid');
@@ -74,7 +75,17 @@ void main() {
         await tester.enterText(fields.at(3), 'NativeTest-123!');
         await tester.ensureVisible(find.text('TẠO TÀI KHOẢN').last);
         await tester.tap(find.text('TẠO TÀI KHOẢN').last);
+        await waitFor(find.byType(EmailVerificationScreen));
+        debugPrint('Auth native stage: verify-screen');
+        final code = await mailpitCode('$name@example.invalid', 'xác minh');
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Mã OTP'),
+          code,
+        );
+        await tester.ensureVisible(find.text('XÁC MINH'));
+        await tester.tap(find.text('XÁC MINH'));
         await waitFor(find.byType(ProfileSetupScreen));
+        debugPrint('Auth native stage: email-verified');
         expect(auth.isAuthenticated, isTrue);
         await tester.enterText(
           find.byType(TextField).first,
@@ -90,7 +101,7 @@ void main() {
         expect((await restored.dio.get('/api/exercises')).statusCode, 200);
         // Use the app's real logout flow and then its username login form.
         await tester.tap(find.text('Cá nhân').last);
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 600));
         await tester.scrollUntilVisible(
           find.text('Đăng xuất'),
           200,
@@ -103,7 +114,7 @@ void main() {
         await waitFor(find.text('ĐĂNG NHẬP'));
         await tester.ensureVisible(find.text('ĐĂNG NHẬP'));
         await tester.tap(find.text('ĐĂNG NHẬP'));
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 600));
         fields = find.byType(TextFormField);
         expect(fields, findsNWidgets(2));
         await tester.enterText(fields.at(0), name.toUpperCase());
@@ -112,12 +123,97 @@ void main() {
         await tester.tap(find.text('TIẾP TỤC'));
         await waitFor(find.byType(ShellScreen));
         expect(auth.isAuthenticated, isTrue);
+        // Profile → Settings → Security → Change password, using real HTTP/JWT.
+        await tester.tap(find.text('Cá nhân').last);
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.scrollUntilVisible(
+          find.text('Bảo mật'),
+          200,
+          scrollable: find.descendant(
+            of: find.byType(ProfileScreen),
+            matching: find.byType(Scrollable),
+          ),
+        );
+        await tester.tap(find.text('Bảo mật'));
+        await waitFor(find.byType(ChangePasswordScreen));
+        debugPrint('Auth native stage: change-screen');
+        fields = find.byType(TextFormField);
+        await tester.enterText(fields.at(0), 'NativeTest-123!');
+        await tester.enterText(fields.at(1), 'NativeChanged-456!');
+        await tester.enterText(fields.at(2), 'NativeChanged-456!');
+        await tester.ensureVisible(
+          find.widgetWithText(ElevatedButton, 'ĐỔI MẬT KHẨU'),
+        );
+        await tester.tap(find.widgetWithText(ElevatedButton, 'ĐỔI MẬT KHẨU'));
+        await waitFor(find.widgetWithText(TextFormField, 'Tên tài khoản'));
+        expect(auth.token, isNull);
+        await tester.ensureVisible(find.text('Quên mật khẩu?'));
+        await tester.tap(find.text('Quên mật khẩu?'));
+        await waitFor(find.byType(PasswordRecoveryScreen));
+        debugPrint('Auth native stage: recovery-screen');
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Email'),
+          '$name@example.invalid',
+        );
+        await tester.tap(find.text('GỬI MÃ OTP'));
+        await waitFor(find.widgetWithText(TextFormField, 'Mã OTP'));
+        final resetCode = await mailpitCode('$name@example.invalid', 'đặt lại');
+        await tester.enterText(
+          find.widgetWithText(TextFormField, 'Mã OTP'),
+          resetCode,
+        );
+        await tester.tap(find.text('KIỂM TRA MÃ'));
+        await waitFor(find.widgetWithText(TextFormField, 'Mật khẩu mới'));
+        fields = find.byType(TextFormField);
+        await tester.enterText(fields.at(0), 'NativeReset-789!');
+        await tester.enterText(fields.at(1), 'NativeReset-789!');
+        await tester.tap(
+          find.widgetWithText(ElevatedButton, 'ĐẶT LẠI MẬT KHẨU'),
+        );
+        await waitFor(find.widgetWithText(TextFormField, 'Tên tài khoản'));
+        fields = find.byType(TextFormField);
+        await tester.enterText(fields.at(0), name);
+        await tester.enterText(fields.at(1), 'NativeReset-789!');
+        await tester.ensureVisible(find.text('TIẾP TỤC'));
+        await tester.tap(find.text('TIẾP TỤC'));
+        await waitFor(find.byType(ShellScreen));
+        final finalRestore = AuthProvider(storage, tokenStorageKey: key);
+        expect(await finalRestore.restoreSession(), AuthStatus.authenticated);
+        expect(finalRestore.needsEmailVerification, isFalse);
+        debugPrint('Auth native stage: reset-and-restore');
         expect(tester.takeException(), isNull);
       } finally {
         await auth.logout();
         await tester.pumpWidget(const SizedBox.shrink());
-        await tester.pumpAndSettle();
+        await tester.pump(const Duration(milliseconds: 600));
       }
     },
   );
+}
+
+Future<String> mailpitCode(String recipient, String subject) async {
+  final client = Dio();
+  try {
+    for (var i = 0; i < 80; i++) {
+      final response = await client.get(
+        'http://127.0.0.1:8025/api/v1/search',
+        queryParameters: {'query': 'to:$recipient'},
+      );
+      final messages = response.data['messages'] as List? ?? [];
+      for (final dynamic message in messages) {
+        if (!(message['Subject'] as String).contains(subject)) continue;
+        final detail = await client.get(
+          'http://127.0.0.1:8025/api/v1/message/${message['ID']}',
+        );
+        final match = RegExp(
+          r'Mã OTP của bạn: ([0-9]{6})',
+        ).firstMatch(detail.data['Text'] as String);
+        if (match != null) return match.group(1)!;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    throw StateError('Test OTP email was not delivered to local Mailpit');
+  } finally {
+    client.close();
+  }
 }

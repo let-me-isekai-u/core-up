@@ -6,6 +6,7 @@ namespace CoreUp.Application;
 public interface IApplicationDbContext
 {
     DbSet<User> Users { get; }
+    DbSet<EmailChallenge> EmailChallenges { get; }
     DbSet<UserProfile> UserProfiles { get; }
     DbSet<Exercise> Exercises { get; }
     DbSet<WorkoutPlan> WorkoutPlans { get; }
@@ -24,4 +25,14 @@ public interface IJwtTokenService
 public sealed class AppException(int statusCode, string message) : Exception(message)
 {
     public int StatusCode { get; } = statusCode;
+}
+
+public interface IEmailSender
+{
+    Task SendAsync(string recipient, string subject, string body, CancellationToken ct);
+}
+
+public sealed class OtpOptions
+{
+    public string Key { get; set; } = string.Empty;
 }

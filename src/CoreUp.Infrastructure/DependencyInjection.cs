@@ -1,5 +1,6 @@
 using CoreUp.Application;
 using CoreUp.Infrastructure.Authentication;
+using CoreUp.Infrastructure.Email;
 using CoreUp.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,6 +31,10 @@ public static class DependencyInjection
 
         services.AddDbContext<CoreUpDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IApplicationDbContext>(sp => sp.GetRequiredService<CoreUpDbContext>());
+        services.Configure<SmtpOptions>(configuration.GetSection("Smtp"));
+        services.AddSingleton<SmtpEmailSender>();
+        services.AddSingleton<IEmailSender>(sp => sp.GetRequiredService<SmtpEmailSender>());
+        services.AddHostedService(sp => sp.GetRequiredService<SmtpEmailSender>());
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
         return services;

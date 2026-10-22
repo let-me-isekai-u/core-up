@@ -8,7 +8,8 @@ namespace CoreUp.Application;
 public sealed class AuthService(
     IApplicationDbContext db,
     IPasswordHasher<User> passwordHasher,
-    IJwtTokenService jwtTokens)
+    IJwtTokenService jwtTokens,
+    AccountSecurityService? security = null)
 {
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct)
     {
@@ -20,7 +21,7 @@ public sealed class AuthService(
         if (await db.Users.AnyAsync(x => x.Email == email, ct))
             throw new AppException(409, "Email đã được sử dụng.");
 
-        var user = new User { Id = Guid.NewGuid(), Username = username, Email = email, CreatedAt = DateTime.UtcNow };
+        var user = new User { Id = Guid.NewGuid(), Username = username, Email = email, VerificationRequired = true, CreatedAt = DateTime.UtcNow };
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
         db.Users.Add(user);
         try
@@ -36,7 +37,8 @@ public sealed class AuthService(
             throw new AppException(409, "Email đã được sử dụng.");
         }
 
-        return new AuthResponse(user.Id, user.Email, jwtTokens.Create(user), true);
+        if (security is not null) await security.SendVerificationAsync(user.Id, ct);
+        return new AuthResponse(user.Id, user.Email, jwtTokens.Create(user), true, !user.EmailVerified, user.VerificationRequired);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct)
@@ -56,6 +58,11 @@ public sealed class AuthService(
             await db.SaveChangesAsync(ct);
         }
 
-        return new AuthResponse(user.Id, user.Email, jwtTokens.Create(user), user.Profile is null);
+        if (security is not null && !user.EmailVerified)
+        {
+            try { await security.SendVerificationAsync(user.Id, ct); }
+            catch (AppException ex) when (ex.StatusCode is 429 or 409 or 503) { }
+        }
+        return new AuthResponse(user.Id, user.Email, jwtTokens.Create(user), user.Profile is null, !user.EmailVerified, user.VerificationRequired);
     }
 }

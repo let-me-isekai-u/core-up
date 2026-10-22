@@ -155,6 +155,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
       ),
       const SizedBox(height: 14),
       const SectionLabel('CÀI ĐẶT'),
+      SurfaceCard(
+        child: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.security_outlined),
+              title: const Text('Bảo mật'),
+              subtitle: const Text('Đổi mật khẩu'),
+              onTap: () => Navigator.of(
+                context,
+              ).push(fadeRoute(const ChangePasswordScreen())),
+            ),
+            if (context.watch<AuthProvider>().needsEmailVerification)
+              ListTile(
+                title: const Text('Xác minh email'),
+                onTap: () => Navigator.of(
+                  context,
+                ).push(fadeRoute(const EmailVerificationScreen())),
+              ),
+          ],
+        ),
+      ),
+
       const SurfaceCard(
         child: ListTile(
           contentPadding: EdgeInsets.zero,

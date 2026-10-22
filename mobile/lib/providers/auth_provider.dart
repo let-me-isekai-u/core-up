@@ -25,6 +25,9 @@ class AuthProvider extends ChangeNotifier {
   Map<String, String> fieldErrors = {};
   AuthStatus status = AuthStatus.initial;
   bool needsProfile = false;
+  bool needsEmailVerification = false;
+  bool verificationRequired = false;
+  String? email;
   bool submitting = false;
   AuthProvider(this.localStorage, {this.tokenStorageKey = 'access_token'}) {
     dio = Dio(
@@ -45,11 +48,20 @@ class AuthProvider extends ChangeNotifier {
   bool get isGuest => status == AuthStatus.guest;
   bool get isAuthenticated => status == AuthStatus.authenticated;
 
+  Future<void> _deleteStoredToken() async {
+    // The macOS plugin probes synchronizable variants when deleting. On an
+    // ad-hoc build, deleting an absent key can return a missing-entitlement error.
+    // Read the configured key first so logout/reset/Guest cleanup is idempotent.
+    if (await _storage.read(key: tokenStorageKey) != null) {
+      await _storage.delete(key: tokenStorageKey);
+    }
+  }
+
   Future<AuthStatus> restoreSession() async {
     final savedMode = await localStorage.sessionMode();
     if (savedMode == 'guest') {
       token = null;
-      await _storage.delete(key: tokenStorageKey);
+      await _deleteStoredToken();
       status = AuthStatus.guest;
       notifyListeners();
       return status;
@@ -57,8 +69,13 @@ class AuthProvider extends ChangeNotifier {
     token = await _storage.read(key: tokenStorageKey);
     if (token != null) {
       try {
-        await dio.get('/api/profile');
-        needsProfile = false;
+        final me = Map<String, dynamic>.from(
+          (await dio.get('/api/auth/me')).data,
+        );
+        needsProfile = me['needsProfile'] == true;
+        needsEmailVerification = me['needsEmailVerification'] == true;
+        verificationRequired = me['verificationRequired'] == true;
+        email = me['email']?.toString();
         status = AuthStatus.authenticated;
         await localStorage.saveSessionMode('authenticated');
         notifyListeners();
@@ -72,7 +89,7 @@ class AuthProvider extends ChangeNotifier {
           return status;
         }
         token = null;
-        await _storage.delete(key: tokenStorageKey);
+        await _deleteStoredToken();
         await localStorage.clearSessionMode();
       }
     }
@@ -86,7 +103,9 @@ class AuthProvider extends ChangeNotifier {
   Future<void> continueAsGuest() async {
     token = null;
     needsProfile = false;
-    await _storage.delete(key: tokenStorageKey);
+    needsEmailVerification = false;
+    email = null;
+    await _deleteStoredToken();
     await localStorage.saveSessionMode('guest');
     status = AuthStatus.guest;
     error = null;
@@ -116,6 +135,9 @@ class AuthProvider extends ChangeNotifier {
       final data = AuthResponse.fromJson(Map<String, dynamic>.from(r.data));
       token = data.accessToken;
       needsProfile = data.needsProfile;
+      needsEmailVerification = data.needsEmailVerification;
+      verificationRequired = data.verificationRequired;
+      this.email = data.email;
       await _storage.write(key: tokenStorageKey, value: token);
       await localStorage.saveSessionMode('authenticated');
       status = AuthStatus.authenticated;
@@ -149,10 +171,34 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> securityAction(String path, Map<String, dynamic> data) async {
+    error = null;
+    try {
+      await dio.post('/api/auth/$path', data: data);
+      return true;
+    } catch (e) {
+      error = securityMessage(e);
+      notifyListeners();
+      return false;
+    }
+  }
+
+  String securityMessage(Object e) {
+    if (e is DioException && e.response?.data is Map) {
+      final body = e.response!.data as Map;
+      if (body['detail'] is String) return body['detail'] as String;
+      if (body['errors'] is Map)
+        return 'Kiểm tra mã OTP, mật khẩu và xác nhận mật khẩu.';
+    }
+    return message(e);
+  }
+
   Future<void> logout() async {
     token = null;
     needsProfile = false;
-    await _storage.delete(key: tokenStorageKey);
+    needsEmailVerification = false;
+    email = null;
+    await _deleteStoredToken();
     await localStorage.clearSessionMode();
     status = AuthStatus.unauthenticated;
     notifyListeners();

@@ -9,6 +9,8 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
         services.AddScoped<IPasswordHasher<User>, PasswordHasher<User>>();
+        services.AddSingleton(TimeProvider.System);
+        services.AddScoped<AccountSecurityService>();
         services.AddScoped<AuthService>();
         services.AddScoped<ProfileService>();
         services.AddScoped<ExerciseService>();

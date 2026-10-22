@@ -16,6 +16,7 @@ import 'onboarding/onboarding_screen.dart';
 
 part 'splash/splash_screen.dart';
 part 'auth/auth_screen.dart';
+part 'auth/security_screens.dart';
 part 'profile/profile_setup_screen.dart';
 part 'home/app_shell.dart';
 part 'home/home_screen.dart';

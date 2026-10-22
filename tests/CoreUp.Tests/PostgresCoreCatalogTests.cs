@@ -58,6 +58,8 @@ public sealed class PostgresCoreCatalogTests
         Assert.Equal(HttpStatusCode.OK, registered.StatusCode);
         var auth = await Json(registered);
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", auth.GetProperty("accessToken").GetString());
+        var sent = factory.Services.GetRequiredService<TestEmailSender>();
+        Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/auth/email-verification/verify", new { code = sent.Code(credentials.email.ToLowerInvariant()) })).StatusCode);
         Assert.Equal(HttpStatusCode.OK, (await client.PostAsJsonAsync("/api/auth/login", credentials)).StatusCode);
         var catalog = await Json(await client.GetAsync("/api/exercises"));
         Assert.Equal(16, catalog.GetArrayLength());
@@ -109,6 +111,8 @@ public sealed class PostgresCoreCatalogTests
             email = $"other-{Guid.NewGuid():N}@example.invalid", password = "CoreTestOnly-12345!"
         }));
         otherClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", otherAuth.GetProperty("accessToken").GetString());
+        var otherEmail = otherAuth.GetProperty("email").GetString()!;
+        Assert.Equal(HttpStatusCode.OK, (await otherClient.PostAsJsonAsync("/api/auth/email-verification/verify", new { code = sent.Code(otherEmail) })).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/workout-plans/{firstPlanId}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync($"/api/workout-sessions/{sessionId}")).StatusCode);
         Assert.Equal(HttpStatusCode.NotFound, (await otherClient.GetAsync("/api/profile")).StatusCode);
@@ -206,6 +210,10 @@ public sealed class PostgresCoreCatalogTests
             builder.UseEnvironment("Development");
             builder.ConfigureServices(services =>
             {
+                services.Configure<OtpOptions>(o => o.Key = "test-only-otp-secret-32-bytes-not-for-production");
+                services.RemoveAll<IEmailSender>();
+                services.AddSingleton<TestEmailSender>();
+                services.AddSingleton<IEmailSender>(sp => sp.GetRequiredService<TestEmailSender>());
                 services.RemoveAll<DbContextOptions<CoreUpDbContext>>();
                 services.RemoveAll<IDbContextOptionsConfiguration<CoreUpDbContext>>();
                 services.AddDbContext<CoreUpDbContext>(options => options.UseNpgsql(connection));

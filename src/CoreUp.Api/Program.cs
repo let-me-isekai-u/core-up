@@ -1,9 +1,11 @@
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Text;
+using System.Security.Claims;
+using CoreUp.Application;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using CoreUp.Api;
-using CoreUp.Application;
 using CoreUp.Infrastructure;
 using CoreUp.Infrastructure.Authentication;
 using CoreUp.Infrastructure.Persistence;
@@ -45,6 +47,10 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
+builder.Services.AddOptions<OtpOptions>().Bind(builder.Configuration.GetSection("Otp"))
+    .Validate(o => Encoding.UTF8.GetByteCount(o.Key) >= 32 && !o.Key.StartsWith("replace_", StringComparison.OrdinalIgnoreCase), "Otp:Key must contain at least 32 bytes from an environment variable or user secret.")
+    .ValidateOnStart();
+
 var jwt = builder.Configuration.GetSection(JwtOptions.SectionName).Get<JwtOptions>()
     ?? throw new InvalidOperationException("JWT configuration is missing.");
 if (Encoding.UTF8.GetByteCount(jwt.Key) < 32)
@@ -53,6 +59,24 @@ if (Encoding.UTF8.GetByteCount(jwt.Key) < 32)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                var principal = context.Principal!;
+                if (!Guid.TryParse(principal.FindFirstValue(ClaimTypes.NameIdentifier), out var id)) { context.Fail("Invalid account."); return; }
+                var db = context.HttpContext.RequestServices.GetRequiredService<CoreUpDbContext>();
+                var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id, context.HttpContext.RequestAborted);
+                var versionClaim = principal.FindFirstValue("token_version");
+                var version = 0; // Legacy Phase 1 tokens remain valid until a password change.
+                if (versionClaim is not null && !int.TryParse(versionClaim, out version)) { context.Fail("Invalid session."); return; }
+                if (user is null || user.TokenVersion != version) { context.Fail("Session revoked."); return; }
+                var path = context.Request.Path;
+                if (user.VerificationRequired && !user.EmailVerified &&
+                    !path.StartsWithSegments("/api/auth/email-verification") && path != "/api/auth/me")
+                    context.Fail("Email verification required.");
+            }
+        };
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuer = true,

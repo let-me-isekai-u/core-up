@@ -112,7 +112,9 @@ class _AuthScreenState extends State<AuthScreen> {
                           if (response == null) return;
                           Navigator.of(context).pushReplacement(
                             fadeRoute(
-                              response.needsProfile
+                              response.needsEmailVerification
+                                  ? const EmailVerificationScreen()
+                                  : response.needsProfile
                                   ? const ProfileSetupScreen()
                                   : const ShellScreen(),
                             ),
@@ -311,6 +313,13 @@ class _AuthForm extends StatelessWidget {
         label: register ? 'TẠO TÀI KHOẢN' : 'TIẾP TỤC',
         onTap: onSubmit,
       ),
+      if (!register)
+        TextButton(
+          onPressed: () => Navigator.of(
+            context,
+          ).push(fadeRoute(const PasswordRecoveryScreen())),
+          child: const Text('Quên mật khẩu?'),
+        ),
       TextButton(
         onPressed: onSwitchMode,
         child: Text(

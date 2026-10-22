@@ -17,7 +17,7 @@ public sealed class LoginRequest
     [Required, MaxLength(128)] public string Password { get; init; } = string.Empty;
 }
 
-public sealed record AuthResponse(Guid UserId, string Email, string AccessToken, bool NeedsProfile);
+public sealed record AuthResponse(Guid UserId, string Email, string AccessToken, bool NeedsProfile, bool NeedsEmailVerification = false, bool VerificationRequired = false);
 
 public sealed class ProfileRequest
 {
@@ -101,3 +101,32 @@ public sealed record ProgressSummaryResponse(
     decimal? CurrentWeightKg, decimal? TargetWeightKg, int TotalWorkouts,
     int WorkoutsThisWeek, int TotalTrainingMinutes, int CurrentStreakDays,
     IReadOnlyList<WeightHistoryPoint> WeightHistory);
+
+public sealed class EmailRequest
+{
+    [Required, EmailAddress, MaxLength(320)] public string Email { get; init; } = string.Empty;
+}
+public sealed class VerifyEmailRequest
+{
+    [Required, RegularExpression(@"[0-9]{6}")] public string Code { get; init; } = string.Empty;
+}
+public sealed class VerifyResetRequest
+{
+    [Required, EmailAddress, MaxLength(320)] public string Email { get; init; } = string.Empty;
+    [Required, RegularExpression(@"[0-9]{6}")] public string Code { get; init; } = string.Empty;
+}
+public sealed class ResetPasswordRequest
+{
+    [Required, EmailAddress, MaxLength(320)] public string Email { get; init; } = string.Empty;
+    [Required, RegularExpression(@"[A-Fa-f0-9]{64}")] public string ResetToken { get; init; } = string.Empty;
+    [Required, MinLength(8), MaxLength(128)] public string NewPassword { get; init; } = string.Empty;
+    [Required, Compare(nameof(NewPassword))] public string ConfirmPassword { get; init; } = string.Empty;
+}
+public sealed class ChangePasswordRequest
+{
+    [Required, MaxLength(128)] public string CurrentPassword { get; init; } = string.Empty;
+    [Required, MinLength(8), MaxLength(128)] public string NewPassword { get; init; } = string.Empty;
+    [Required, Compare(nameof(NewPassword))] public string ConfirmPassword { get; init; } = string.Empty;
+}
+public sealed record OtpSentResponse(string Message, int ExpiresInSeconds = 300, int ResendAfterSeconds = 60);
+public sealed record ResetGrantResponse(string ResetToken, DateTime ExpiresAt);

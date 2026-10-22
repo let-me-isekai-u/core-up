@@ -16,6 +16,7 @@ internal sealed class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenS
     {
         var claims = new[]
         {
+            new Claim("token_version", user.TokenVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)),
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
