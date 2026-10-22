@@ -50,7 +50,8 @@ internal static class ExerciseSeed
             CreatedAt = SeedDate,
             Description = "Chờ duyệt chuyên môn. Nguồn: Thomas et al. (2017), The effects of a calisthenics training intervention on posture, strength and body composition, Isokinetics and Exercise Science 25, 215–222. DOI: 10.3233/IES-170001. Bảng 1, tr. 217; mục 2.5.4 và Hình 1f, tr. 218. Tên gốc: Hollow body position. Nghiên cứu dùng 4 hiệp × 45 giây trong chương trình phối hợp; không xác lập liều tập riêng cho người mới hoặc thừa cân. Không chứng minh giảm mỡ bụng tại chỗ.",
             Instructions = "Tư thế giữ tĩnh minh họa tại Hình 1f, tr. 218. Chưa cung cấp hướng dẫn tự tập: cần duyệt kỹ thuật, biến thể phù hợp, tiêu chí dừng, số hiệp, thời gian giữ và nghỉ trước khi kích hoạt. Advanced là phân loại tạm của ứng dụng, không phải kết luận nghiên cứu; giá trị nghỉ 0 là dữ liệu chờ duyệt, không phải khuyến nghị tập không nghỉ."
-        }
+        },
+        .. CoreExerciseSeed.All
     ];
 
     private static Exercise Reps(int id, string name, string slug, string muscle, int reps,
@@ -68,6 +69,6 @@ internal static class ExerciseSeed
             MuscleGroup = muscle, ExerciseType = type, Difficulty = level,
             DefaultSets = sets, DefaultReps = reps, DefaultDurationSeconds = seconds,
             DefaultRestSeconds = rest, Description = description, Instructions = instructions,
-            IsActive = true, CreatedAt = SeedDate
+            IsActive = muscle == "Core", CreatedAt = SeedDate
         };
 }

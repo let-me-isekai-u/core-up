@@ -93,27 +93,19 @@ public sealed class ExerciseImportTests
         await using var db = await CreateDatabase();
         await Import(db);
         var service = new ExerciseService(db);
-        Assert.Equal(25, (await service.GetAsync(null, null, default)).Count);
+        Assert.Equal(8, (await service.GetAsync(null, null, default)).Count);
         Assert.DoesNotContain(await service.GetAsync(null, "Core", default), x => x.Id == ImportedId);
         var error = await Assert.ThrowsAsync<AppException>(() => service.GetByIdAsync(ImportedId, default));
         Assert.Equal(404, error.StatusCode);
 
-        // Also disable a slug the generator actually selects, so the test proves filtering.
-        var plank = await db.Exercises.SingleAsync(x => x.Slug == "plank");
-        plank.IsActive = false;
-        await db.SaveChangesAsync();
+        // Legacy Core labels alone are not prescription approval. No reviewed new
+        // exercises exist in this historical import fixture, so fail explicitly.
         var exercises = await db.Exercises.ToListAsync();
-        foreach (var level in Enum.GetValues<FitnessLevel>())
-        foreach (var bmi in Enum.GetValues<BmiCategory>())
+        var failure = Assert.Throws<AppException>(() => WorkoutPlanGenerator.Generate(new UserProfile
         {
-            var generated = WorkoutPlanGenerator.Generate(new UserProfile
-            {
-                FitnessLevel = level, BmiCategory = bmi, PreferredWorkoutDurationMinutes = 45
-            }, exercises);
-            Assert.NotEmpty(generated);
-            Assert.All(generated, x => Assert.True(x.Exercise.IsActive));
-            Assert.DoesNotContain(generated, x => x.Exercise.Id == ImportedId || x.Exercise.Slug == "plank");
-        }
+            FitnessLevel = FitnessLevel.Beginner, PreferredWorkoutDurationMinutes = 20
+        }, exercises));
+        Assert.Equal(422, failure.StatusCode);
     }
 
     [Fact]
@@ -156,7 +148,9 @@ public sealed class ExerciseImportTests
             .UseSqlite("Data Source=:memory:").Options);
         await db.Database.OpenConnectionAsync();
         await db.Database.EnsureCreatedAsync();
-        await db.Exercises.Where(x => x.Id == ImportedId).ExecuteDeleteAsync();
+        await db.Exercises.Where(x => x.Id == ImportedId || x.CreatedAt >= new DateTime(2026, 10, 22)).ExecuteDeleteAsync();
+        // Reconstruct the original 25-record baseline rather than silently using today's seed.
+        await db.Exercises.ExecuteUpdateAsync(x => x.SetProperty(e => e.IsActive, true));
         return db;
     }
 

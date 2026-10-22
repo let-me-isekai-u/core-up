@@ -100,7 +100,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Keep the chest tall and push the knees in line with the toes.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Legs",
                             Name = "Bodyweight Squat",
                             Slug = "bodyweight-squat"
@@ -116,7 +116,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Step forward, lower both knees, then drive back.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Legs",
                             Name = "Forward Lunge",
                             Slug = "forward-lunge"
@@ -132,7 +132,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Brace the core and squeeze the glutes at the top.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Glutes",
                             Name = "Glute Bridge",
                             Slug = "glute-bridge"
@@ -148,7 +148,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Rise onto the balls of the feet and lower slowly.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Calves",
                             Name = "Calf Raise",
                             Slug = "calf-raise"
@@ -164,7 +164,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Duration",
                             Instructions = "Keep knees near ninety degrees and the back supported.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Legs",
                             Name = "Wall Sit",
                             Slug = "wall-sit"
@@ -180,7 +180,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Keep a straight line from head to heels.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Chest",
                             Name = "Push-up",
                             Slug = "push-up"
@@ -196,7 +196,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Brace the core and lower the chest with control.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Chest",
                             Name = "Knee Push-up",
                             Slug = "knee-push-up"
@@ -212,7 +212,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Keep the body straight and bring the chest toward the surface.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Chest",
                             Name = "Incline Push-up",
                             Slug = "incline-push-up"
@@ -228,7 +228,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Use a stable surface and keep shoulders away from ears.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Arms",
                             Name = "Triceps Dip",
                             Slug = "triceps-dip"
@@ -244,7 +244,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Lift arms and legs gently without forcing the lower back.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Back",
                             Name = "Superman",
                             Slug = "superman"
@@ -372,7 +372,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Duration",
                             Instructions = "Drive alternating knees forward while keeping hips stable.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Cardio",
                             Name = "Mountain Climber",
                             Slug = "mountain-climber"
@@ -388,7 +388,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Duration",
                             Instructions = "Land softly and maintain a steady pace.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Cardio",
                             Name = "Jumping Jack",
                             Slug = "jumping-jack"
@@ -404,7 +404,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Duration",
                             Instructions = "Lift knees comfortably and land lightly.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Cardio",
                             Name = "High Knees",
                             Slug = "high-knees"
@@ -420,7 +420,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Drive through the lead foot and control the descent.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Legs",
                             Name = "Step-up",
                             Slug = "step-up"
@@ -436,7 +436,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Intermediate",
                             ExerciseType = "Repetition",
                             Instructions = "Move through squat, plank and stand with controlled landings.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Full Body",
                             Name = "Burpee",
                             Slug = "burpee"
@@ -468,7 +468,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Repetition",
                             Instructions = "Alternate spinal flexion and extension with the breath.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Mobility",
                             Name = "Cat-Cow",
                             Slug = "cat-cow"
@@ -484,7 +484,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             Difficulty = "Beginner",
                             ExerciseType = "Duration",
                             Instructions = "Sit hips toward heels and reach forward comfortably.",
-                            IsActive = true,
+                            IsActive = false,
                             MuscleGroup = "Mobility",
                             Name = "Child's Pose",
                             Slug = "childs-pose"
@@ -502,6 +502,114 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
                             MuscleGroup = "Core",
                             Name = "Giữ thân rỗng (Hollow Body Hold)",
                             Slug = "hollow-body-hold"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000027"),
+                            CreatedAt = new DateTime(2026, 10, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultRestSeconds = 0,
+                            Description = "Bài nhận biết vị trí chậu/cột sống. Chờ duyệt để dùng như bài tăng sức mạnh bụng; nguồn không hướng dẫn siết bụng và số lần do chuyên viên quyết định. Nguồn kỹ thuật: https://www.southtees.nhs.uk/resources/pelvic-tilt/.",
+                            Difficulty = "Beginner",
+                            ExerciseType = "Repetition",
+                            Instructions = "1. Nằm ngửa, gối gập, bàn chân tựa giường/thảm. 2. Nghiêng chậu nhẹ để lưng dưới chạm mặt tựa. 3. Nghiêng trở lại tạo một khoảng cong nhỏ; về giữa. Thở bình thường, không gồng bụng hoặc ép biên độ. Dụng cụ: mặt tựa chắc, thảm tùy chọn. Chưa có liều tập trong ứng dụng. Dừng khi đau, chóng mặt, khó thở, bụng phồng bất thường hoặc không giữ được tư thế. Không nín thở hay cố tập qua đau. Người có bệnh lý, chấn thương, mới phẫu thuật hoặc loãng xương cần hỏi chuyên viên y tế trước khi tập.",
+                            IsActive = false,
+                            MuscleGroup = "Core",
+                            Name = "Nghiêng chậu nhẹ",
+                            Slug = "pelvic-tilt"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000028"),
+                            CreatedAt = new DateTime(2026, 10, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultReps = 10,
+                            DefaultRestSeconds = 60,
+                            DefaultSets = 1,
+                            Description = "Kiểm soát bụng sâu khi trượt một chân, không phải bài tăng tải chân. Nguồn kỹ thuật: https://www.worcsacute.nhs.uk/leaflets/core-stability-1-physiotherapy/ Nguồn nêu 5 lần mỗi chân; ứng dụng ghi 10 lần tổng cộng, một hiệp. Đây là hướng dẫn vật lý trị liệu, không chứng minh riêng cho người thừa cân. Nghỉ 60 giây là lựa chọn ứng dụng trong khoảng nghỉ ổn định 0–90 giây của NASM, không phải liều điều trị: https://www.nasm.org/resource-center/blog/training/periodization-training-simplified-a-strategic-guide. Có thể nghỉ thêm hoặc dừng nếu chưa hồi phục.",
+                            Difficulty = "Beginner",
+                            ExerciseType = "Repetition",
+                            Instructions = "1. Nằm ngửa, gối gập, đặt chân trên thảm, tìm vị trí lưng trung tính. 2. Thở ra, siết nhẹ bụng và trượt một gót ra xa chậm. 3. Hít vào, kéo chân về, đổi chân. Một lần là một chân trượt đi rồi về; 10 lần tổng = 5 mỗi bên. Giữ chậu yên; giảm tầm trượt nếu lưng cong hoặc chậu xoay. Dụng cụ: thảm, gối đầu mỏng tùy chọn. Dừng khi đau, chóng mặt, khó thở, bụng phồng bất thường hoặc không giữ được tư thế. Không nín thở hay cố tập qua đau. Người có bệnh lý, chấn thương, mới phẫu thuật hoặc loãng xương cần hỏi chuyên viên y tế trước khi tập.",
+                            IsActive = true,
+                            MuscleGroup = "Core",
+                            Name = "Trượt gót chân nằm ngửa",
+                            Slug = "supine-heel-slide"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000029"),
+                            CreatedAt = new DateTime(2026, 10, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultRestSeconds = 0,
+                            Description = "Ổn định bụng/chậu khi mở một gối. Chờ duyệt liều tập cho người dùng phổ thông: nguồn ở bối cảnh phục hồi gãy chậu, không tự chuyển 10 lần mỗi chân thành mặc định. Nguồn: https://www.cuh.nhs.uk/patient-information/exercises-after-a-pelvic-fracture/, mục Single knee fallout; https://www.worcsacute.nhs.uk/leaflets/core-stability-1-physiotherapy/",
+                            Difficulty = "Beginner",
+                            ExerciseType = "Repetition",
+                            Instructions = "1. Nằm ngửa, hai gối gập, chân tựa thảm. 2. Thở ra, siết nhẹ bụng sâu. 3. Mở chậm một gối ra bên trong tầm kiểm soát; giữ chân kia và chậu yên. 4. Đưa về, thả lỏng rồi đổi bên. Không xoay chậu hoặc để bụng phồng; không dùng biến thể nhấc chân tabletop. Dụng cụ: thảm. Chưa có liều tập được duyệt. Dừng khi đau, chóng mặt, khó thở, bụng phồng bất thường hoặc không giữ được tư thế. Không nín thở hay cố tập qua đau. Người có bệnh lý, chấn thương, mới phẫu thuật hoặc loãng xương cần hỏi chuyên viên y tế trước khi tập.",
+                            IsActive = false,
+                            MuscleGroup = "Core",
+                            Name = "Mở gối sang bên có kiểm soát",
+                            Slug = "bent-knee-fallout"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000030"),
+                            CreatedAt = new DateTime(2026, 10, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultReps = 12,
+                            DefaultRestSeconds = 60,
+                            DefaultSets = 1,
+                            Description = "Giữ thân ổn định khi tay và gối tạo lực đối nhau. Nguồn: https://www.mayoclinic.org/healthy-lifestyle/fitness/in-depth/core-strength/art-20546851, Single-leg abdominal press: giữ 3 nhịp thở sâu; hướng dẫn chung 1 hiệp 12–15 lần. Ứng dụng chọn 12 lần tổng, 6 mỗi bên, không tăng theo BMI. Nghỉ 60 giây là lựa chọn ứng dụng trong khoảng nghỉ ổn định 0–90 giây của NASM, không phải liều điều trị: https://www.nasm.org/resource-center/blog/training/periodization-training-simplified-a-strategic-guide. Có thể nghỉ thêm hoặc dừng nếu chưa hồi phục.",
+                            Difficulty = "Beginner",
+                            ExerciseType = "Repetition",
+                            Instructions = "1. Nằm ngửa, gối gập, giữ lưng trung tính. 2. Siết nhẹ bụng, nâng một chân để háng/gối khoảng 90 độ. 3. Đặt tay cùng bên lên gối; đẩy tay và gối vào nhau vừa sức, giữ tay thẳng và thở sâu 3 nhịp. 4. Hạ chân, đổi bên. Một lần là một lần ép rồi thả; 12 lần tổng = 6 mỗi bên. Không nghiêng chậu, cong lưng hoặc ép tối đa. Dụng cụ: thảm. Dừng khi đau, chóng mặt, khó thở, bụng phồng bất thường hoặc không giữ được tư thế. Không nín thở hay cố tập qua đau. Người có bệnh lý, chấn thương, mới phẫu thuật hoặc loãng xương cần hỏi chuyên viên y tế trước khi tập.",
+                            IsActive = true,
+                            MuscleGroup = "Core",
+                            Name = "Ép bụng một chân",
+                            Slug = "single-leg-abdominal-press"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000031"),
+                            CreatedAt = new DateTime(2026, 10, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultDurationSeconds = 10,
+                            DefaultRestSeconds = 60,
+                            DefaultSets = 2,
+                            Description = "Giữ bụng ổn định trên cẳng tay và gối. Nguồn: https://mayfieldclinic.com/pe-exercore.htm, Modified plank: giữ 10 giây, lặp 5 lần. Ứng dụng bắt đầu 2 lần giữ 10 giây, thấp hơn số lần của nguồn; không tự tăng thời gian. Nghỉ 60 giây là lựa chọn ứng dụng trong khoảng nghỉ ổn định 0–90 giây của NASM, không phải liều điều trị: https://www.nasm.org/resource-center/blog/training/periodization-training-simplified-a-strategic-guide. Có thể nghỉ thêm hoặc dừng nếu chưa hồi phục.",
+                            Difficulty = "Beginner",
+                            ExerciseType = "Duration",
+                            Instructions = "1. Nằm sấp, đặt khuỷu dưới vai, cẳng tay và gối trên thảm. 2. Siết nhẹ bụng, nâng thân, giữ đầu–vai–hông–gối thẳng. 3. Thở đều, giữ tối đa 10 giây rồi hạ nghỉ; 2 hiệp = 2 lần giữ. Không võng lưng, nhấc mông cao hoặc dồn vai gây đau. Dụng cụ: thảm, đệm gối tùy chọn. Nếu không kiểm soát được tư thế, dừng và chọn bài nằm ngửa. Dừng khi đau, chóng mặt, khó thở, bụng phồng bất thường hoặc không giữ được tư thế. Không nín thở hay cố tập qua đau. Người có bệnh lý, chấn thương, mới phẫu thuật hoặc loãng xương cần hỏi chuyên viên y tế trước khi tập.",
+                            IsActive = true,
+                            MuscleGroup = "Core",
+                            Name = "Plank chống gối",
+                            Slug = "modified-knee-plank"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000032"),
+                            CreatedAt = new DateTime(2026, 10, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultDurationSeconds = 10,
+                            DefaultRestSeconds = 60,
+                            DefaultSets = 2,
+                            Description = "Ổn định bên thân trên cẳng tay và gối gập. Nguồn: https://mayfieldclinic.com/pe-exercore.htm, Side plank chống gối: giữ 10 giây, lặp 5 lần. Ứng dụng dùng 2 hiệp tổng: trái một hiệp, phải một hiệp; không phải 2 hiệp mỗi bên. Nghỉ 60 giây là lựa chọn ứng dụng trong khoảng nghỉ ổn định 0–90 giây của NASM, không phải liều điều trị: https://www.nasm.org/resource-center/blog/training/periodization-training-simplified-a-strategic-guide. Có thể nghỉ thêm hoặc dừng nếu chưa hồi phục.",
+                            Difficulty = "Beginner",
+                            ExerciseType = "Duration",
+                            Instructions = "1. Nằm nghiêng, hai gối gập, khuỷu ngay dưới vai. 2. Siết nhẹ bụng, chống cẳng tay và gối để nâng hông; giữ vai–hông–gối thẳng. 3. Hiệp 1 giữ bên trái tối đa 10 giây, hạ nghỉ. Hiệp 2 đổi bên phải, tối đa 10 giây. Không xoay thân, sụp vai hoặc nín thở. Dụng cụ: thảm, đệm gối tùy chọn. Đau vai/gối hoặc không giữ thẳng được thì dừng. Dừng khi đau, chóng mặt, khó thở, bụng phồng bất thường hoặc không giữ được tư thế. Không nín thở hay cố tập qua đau. Người có bệnh lý, chấn thương, mới phẫu thuật hoặc loãng xương cần hỏi chuyên viên y tế trước khi tập.",
+                            IsActive = true,
+                            MuscleGroup = "Core",
+                            Name = "Plank nghiêng chống gối",
+                            Slug = "modified-side-plank"
+                        },
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000033"),
+                            CreatedAt = new DateTime(2026, 10, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DefaultReps = 12,
+                            DefaultRestSeconds = 60,
+                            DefaultSets = 1,
+                            Description = "Biến thể sau khi thực hiện vững ép bụng một chân; Intermediate là phân loại ứng dụng. Nguồn: https://www.mayoclinic.org/healthy-lifestyle/fitness/in-depth/core-strength/art-20546851, Double-leg abdominal press: giữ 3 nhịp thở sâu; hướng dẫn chung 1 hiệp 12–15 lần. Ứng dụng chọn 1 hiệp 12 lần, không coi cân nặng là thước đo khả năng. Nghỉ 60 giây là lựa chọn ứng dụng trong khoảng nghỉ ổn định 0–90 giây của NASM, không phải liều điều trị: https://www.nasm.org/resource-center/blog/training/periodization-training-simplified-a-strategic-guide. Có thể nghỉ thêm hoặc dừng nếu chưa hồi phục.",
+                            Difficulty = "Intermediate",
+                            ExerciseType = "Repetition",
+                            Instructions = "1. Nằm ngửa, gối gập, siết nhẹ bụng, giữ lưng trung tính. 2. Nâng từng chân để háng/gối khoảng 90 độ, đặt tay lên gối tương ứng. 3. Đẩy tay và gối đối nhau vừa sức, tay thẳng, thở sâu 3 nhịp. 4. Hạ từng chân, thả lỏng rồi lặp; một lần gồm cả hai chân. Không cong lưng, nghiêng chậu hoặc nín thở. Dụng cụ: thảm. Nếu mất kiểm soát, quay về biến thể một chân. Dừng khi đau, chóng mặt, khó thở, bụng phồng bất thường hoặc không giữ được tư thế. Không nín thở hay cố tập qua đau. Người có bệnh lý, chấn thương, mới phẫu thuật hoặc loãng xương cần hỏi chuyên viên y tế trước khi tập.",
+                            IsActive = true,
+                            MuscleGroup = "Core",
+                            Name = "Ép bụng hai chân",
+                            Slug = "double-leg-abdominal-press"
                         });
                 });
 

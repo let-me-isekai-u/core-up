@@ -8,7 +8,7 @@ public sealed class ExerciseService(IApplicationDbContext db)
     public async Task<IReadOnlyList<ExerciseResponse>> GetAsync(
         FitnessLevel? difficulty, string? muscleGroup, CancellationToken ct)
     {
-        var query = db.Exercises.AsNoTracking().Where(x => x.IsActive);
+        var query = db.Exercises.AsNoTracking().Where(x => x.IsActive && x.MuscleGroup == "Core");
         if (difficulty.HasValue) query = query.Where(x => x.Difficulty == difficulty.Value);
         if (!string.IsNullOrWhiteSpace(muscleGroup))
         {
@@ -21,7 +21,7 @@ public sealed class ExerciseService(IApplicationDbContext db)
 
     public async Task<ExerciseResponse> GetByIdAsync(Guid id, CancellationToken ct)
     {
-        var exercise = await db.Exercises.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.IsActive, ct)
+        var exercise = await db.Exercises.AsNoTracking().SingleOrDefaultAsync(x => x.Id == id && x.IsActive && x.MuscleGroup == "Core", ct)
             ?? throw new AppException(404, "Exercise was not found.");
         return exercise.ToResponse();
     }

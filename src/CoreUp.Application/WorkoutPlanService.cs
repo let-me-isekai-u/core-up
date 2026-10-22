@@ -31,9 +31,9 @@ public sealed class WorkoutPlanService(IApplicationDbContext db)
     {
         var profile = await db.UserProfiles.SingleOrDefaultAsync(x => x.UserId == userId, ct)
             ?? throw new AppException(400, "Complete your profile before generating a workout plan.");
-        var exercises = await db.Exercises.Where(x => x.IsActive).ToListAsync(ct);
+        var exercises = await db.Exercises.Where(x => x.IsActive && x.MuscleGroup == "Core").ToListAsync(ct);
         var generated = WorkoutPlanGenerator.Generate(profile, exercises);
-        if (generated.Count == 0) throw new AppException(500, "Exercise seed data is missing.");
+        var estimatedMinutes = WorkoutPlanGenerator.EstimateMinutes(generated);
 
         var activePlans = await db.WorkoutPlans.Where(x => x.UserId == userId && x.IsActive).ToListAsync(ct);
         foreach (var active in activePlans)
@@ -46,10 +46,10 @@ public sealed class WorkoutPlanService(IApplicationDbContext db)
         var plan = new WorkoutPlan
         {
             Id = Guid.NewGuid(), UserId = userId,
-            Name = $"{profile.DifficultyName()} Full Body",
-            Description = $"Rule-based {profile.Goal} plan generated from your current profile.",
-            Goal = profile.Goal, Difficulty = profile.FitnessLevel,
-            EstimatedDurationMinutes = profile.PreferredWorkoutDurationMinutes,
+            Name = $"{generated.Max(x => x.Exercise.Difficulty)} Core",
+            Description = $"Core stability: {generated.Count} exercises. Your selected level is {profile.FitnessLevel}; this session uses available exercises up to {generated.Max(x => x.Exercise.Difficulty)}. Practice these movements with control before progressing. Session length is an estimate including breathing and rest; you do not need to fill the requested time. Rest longer or stop if you lose control or feel pain. Abdominal training does not reduce fat only around the belly.",
+            Goal = profile.Goal, Difficulty = generated.Max(x => x.Exercise.Difficulty),
+            EstimatedDurationMinutes = estimatedMinutes,
             IsActive = true, IsGenerated = true, CreatedAt = now
         };
 
@@ -60,7 +60,8 @@ public sealed class WorkoutPlanService(IApplicationDbContext db)
             {
                 Id = Guid.NewGuid(), WorkoutPlanId = plan.Id, ExerciseId = item.Exercise.Id,
                 Exercise = item.Exercise, Order = order++, Sets = item.Sets, Reps = item.Reps,
-                DurationSeconds = item.DurationSeconds, RestSeconds = item.RestSeconds
+                DurationSeconds = item.DurationSeconds, RestSeconds = item.RestSeconds,
+                Notes = "Follow the exercise instructions for side counts and breathing. Rest longer or stop if needed; do not train through pain."
             });
         }
 
@@ -78,9 +79,4 @@ public sealed class WorkoutPlanService(IApplicationDbContext db)
         plan.Exercises.OrderBy(x => x.Order).Select(x => new WorkoutPlanExerciseResponse(
             x.Id, x.Order, x.Exercise.ToResponse(), x.Sets, x.Reps,
             x.DurationSeconds, x.RestSeconds, x.Notes)).ToList());
-}
-
-internal static class ProfileNamingExtensions
-{
-    public static string DifficultyName(this UserProfile profile) => profile.FitnessLevel.ToString();
 }
