@@ -1,4 +1,5 @@
 using System.Data.Common;
+using Microsoft.Extensions.Configuration;
 using CoreUp.Domain;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -9,7 +10,8 @@ public sealed class AuthService(
     IApplicationDbContext db,
     IPasswordHasher<User> passwordHasher,
     IJwtTokenService jwtTokens,
-    AccountSecurityService? security = null)
+    AccountSecurityService? security = null,
+    IConfiguration? configuration = null)
 {
     public async Task<AuthResponse> RegisterAsync(RegisterRequest request, CancellationToken ct)
     {
@@ -21,7 +23,7 @@ public sealed class AuthService(
         if (await db.Users.AnyAsync(x => x.Email == email, ct))
             throw new AppException(409, "Email đã được sử dụng.");
 
-        var user = new User { Id = Guid.NewGuid(), Username = username, Email = email, VerificationRequired = true, CreatedAt = DateTime.UtcNow };
+        var user = new User { Id = Guid.NewGuid(), Username = username, Email = email, VerificationRequired = configuration?.GetValue<bool?>("Auth:RequireRegistrationOtp") ?? true, CreatedAt = DateTime.UtcNow };
         user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
         db.Users.Add(user);
         try
@@ -37,8 +39,8 @@ public sealed class AuthService(
             throw new AppException(409, "Email đã được sử dụng.");
         }
 
-        if (security is not null) await security.SendVerificationAsync(user.Id, ct);
-        return new AuthResponse(user.Id, user.Email, jwtTokens.Create(user), true, !user.EmailVerified, user.VerificationRequired);
+        if (security is not null && user.VerificationRequired) await security.SendVerificationAsync(user.Id, ct);
+        return new AuthResponse(user.Id, user.Email, jwtTokens.Create(user), true, user.VerificationRequired && !user.EmailVerified, user.VerificationRequired);
     }
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request, CancellationToken ct)
@@ -60,11 +62,11 @@ public sealed class AuthService(
             await db.SaveChangesAsync(ct);
         }
 
-        if (security is not null && !user.EmailVerified)
+        if (security is not null && user.VerificationRequired && !user.EmailVerified)
         {
             try { await security.SendVerificationAsync(user.Id, ct); }
             catch (AppException ex) when (ex.StatusCode is 429 or 409 or 503) { }
         }
-        return new AuthResponse(user.Id, user.Email, jwtTokens.Create(user), user.Profile is null, !user.EmailVerified, user.VerificationRequired);
+        return new AuthResponse(user.Id, user.Email, jwtTokens.Create(user), user.Profile is null, user.VerificationRequired && !user.EmailVerified, user.VerificationRequired);
     }
 }

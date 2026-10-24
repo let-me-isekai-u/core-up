@@ -25,7 +25,7 @@ public sealed class AuthController(AuthService auth, AccountSecurityService secu
     public async Task<ActionResult> Me(CancellationToken ct)
     {
         var user = await db.Users.AsNoTracking().Include(x => x.Profile).SingleAsync(x => x.Id == CurrentUserId, ct);
-        return Ok(new { user.Id, user.Username, user.Email, user.EmailVerified, user.VerificationRequired, NeedsEmailVerification = !user.EmailVerified, NeedsProfile = user.Profile is null });
+        return Ok(new { user.Id, user.Username, user.Email, user.EmailVerified, user.VerificationRequired, NeedsEmailVerification = user.VerificationRequired && !user.EmailVerified, NeedsProfile = user.Profile is null });
     }
 
     [Authorize]

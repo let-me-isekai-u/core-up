@@ -1,5 +1,6 @@
 @page "/admin/users/{id:guid}"
 @model CoreUp.Api.Pages.Admin.UserModel
+@if(Model.Notice != null){<p role="status">@Model.Notice</p>}
 <h1>@Model.Account?.Username</h1><section><p>@Model.Account?.Email</p><p>ID: @Model.Account?.Id</p><p>Đăng ký: @Model.Account?.CreatedAt.ToString("u") · @Model.Account?.Role · @(Model.Account?.EmailVerified == true ? "Email đã xác minh" : "Email chưa xác minh")</p>
 <h2>Premium: @Model.Access?.Status</h2><p>Nguồn: @(Model.Access?.Source ?? "—") · Hết hạn: @(Model.Access?.ExpiresAt?.ToString("u") ?? (Model.Access?.HasPremium == true ? "Không thời hạn" : "—"))</p></section>
 <section><h2>Thay đổi quyền demo</h2><p>Thao tác chỉ ảnh hưởng quyền Premium. Không xóa tài khoản, questionnaire hoặc lịch sử tập.</p>
@@ -7,8 +8,20 @@
 <label>Thời hạn tính từ hiện tại <select asp-for="Duration"><option value="7">7 ngày</option><option value="30">30 ngày</option><option value="180">180 ngày</option><option value="365">365 ngày</option><option value="custom">Tùy chọn UTC</option><option value="forever">Demo không thời hạn (chọn rõ ràng)</option></select></label>
 <label>Ngày hết hạn UTC nếu tùy chọn <input asp-for="CustomUtc" type="datetime-local"/></label>
 <label><input asp-for="Extend"/> Tôi chủ đích gia hạn quyền đang Active (ngày mới phải muộn hơn ngày hiện có).</label>
-<label>Lý do bắt buộc <textarea asp-for="Reason" minlength="3" maxlength="1000" required></textarea></label>
+<label>Lý do (không bắt buộc) <textarea asp-for="Reason" maxlength="1000"></textarea></label>
 <label><input asp-for="Confirm" required/> Tôi xác nhận thao tác cho @Model.Account?.Username — @Model.Account?.Email — @Model.Account?.Id.</label>
 <button name="operation" value="grant">Cấp / gia hạn Premium demo</button>
 @if(Model.Entitlement != null && Model.Entitlement.Status != PremiumStatus.Revoked){<button name="operation" value="revoke">Thu hồi Premium</button>}
 </form></section>
+
+<section><h2>Thông tin hồ sơ</h2>
+@if(Model.Profile is {} p){
+<dl><dt>Họ tên</dt><dd>@p.FullName</dd><dt>Ngày sinh / giới tính</dt><dd>@p.DateOfBirth / @p.Gender</dd>
+<dt>Chiều cao / cân nặng / mục tiêu</dt><dd>@p.HeightCm cm / @p.WeightKg kg / @p.TargetWeightKg kg</dd>
+<dt>BMI</dt><dd>@p.Bmi (@p.BmiCategory)</dd><dt>Thể lực / mục tiêu tập</dt><dd>@p.FitnessLevel / @p.Goal</dd>
+<dt>Lịch tập</dt><dd>@p.TrainingDaysPerWeek ngày/tuần · @p.PreferredWorkoutDurationMinutes phút/buổi</dd></dl>
+<details><summary>Câu trả lời đánh giá thể lực</summary><pre>@p.QuestionnaireAnswers</pre></details>
+}else{<p>Người dùng chưa tạo hồ sơ.</p>}
+</section>
+<section><h2>Mật khẩu</h2><p>@(Model.HasPassword ? "Đã có mật khẩu (lưu dạng băm, không thể xem mật khẩu gốc)." : "Tài khoản chưa có mật khẩu riêng.")</p>
+<form method="post" asp-page-handler="Password"><label>Mật khẩu mới <input asp-for="NewPassword" type="password" autocomplete="new-password" maxlength="128" required /></label><button>Đặt lại mật khẩu</button></form></section>

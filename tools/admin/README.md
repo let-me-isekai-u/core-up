@@ -160,3 +160,9 @@ nullable for the independent operator. Local panel changes write append-only aud
 actions prefixed `LocalPanel:` with null application-user actor; a real target user
 and reason remain mandatory. Grants/revocations retain their transactional checks.
 Down deliberately refuses to invent a mobile actor for existing audit history.
+
+### Local graduation-project simplification (2026-10-24)
+- Development config `Auth:RequireRegistrationOtp=false`: new password registrations skip OTP delivery and verification navigation, including subsequent login/session restore. EmailVerified remains truthful (false); existing accounts awaiting OTP and Google verification are unchanged.
+- Premium grant/revoke reason is optional; blank input gets an automatic audit description without schema changes.
+- Admin user detail includes profile metrics, training preferences and questionnaire answers. Original passwords cannot be recovered from hashes; an admin password-reset form replaces the password and revokes prior sessions. Passwords are never included in audit records.
+- Validation: backend build 0 errors/warnings; live HTTP registration/me, admin blank-reason Premium grant, password reset/login, and old-token rejection passed. QA account `qa_local_1792852908` retained for inspection. No Flutter commands or simulator run.

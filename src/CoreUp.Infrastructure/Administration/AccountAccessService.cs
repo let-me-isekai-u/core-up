@@ -21,10 +21,10 @@ public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock,
     }
 
     public async Task ChangeAsync(ClaimsPrincipal administrator, Guid target, bool revoke, DateTime? expiration,
-        bool nonExpiring, bool extend, string reason, int expectedRevision, CancellationToken ct)
+        bool nonExpiring, bool extend, string? reason, int expectedRevision, CancellationToken ct)
     {
-        reason = reason.Trim();
-        if (reason.Length is < 3 or > 1000) throw new AppException(400, "Reason must contain 3–1000 characters.");
+        reason = string.IsNullOrWhiteSpace(reason) ? "Thao tác từ Control Panel" : reason.Trim();
+        if (reason.Length > 1000) throw new AppException(400, "Lý do tối đa 1000 ký tự.");
         var now = clock.GetUtcNow().UtcDateTime;
         if (!revoke && ((!nonExpiring && expiration == null) || (nonExpiring && expiration != null) || expiration <= now))
             throw new AppException(400, "Select a future UTC expiration or explicitly select non-expiring access.");
