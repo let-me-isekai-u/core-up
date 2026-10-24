@@ -1,46 +1,121 @@
 import 'package:flutter/material.dart';
 
-/// PNG slots keyed by backend slug; empty paths intentionally render a placeholder.
-/// Static holds use one slot, movements use two. No simulated posture animation.
-/// Add PNGs under assets/ (already bundled), then replace a mapping with e.g.
-/// ExerciseArtwork(['assets/pelvic-tilt-1.png', 'assets/pelvic-tilt-2.png']).
-/// Pass frame 0/1 to display the supplied poses; playback is intentionally deferred.
-class ExerciseArtwork {
-  const ExerciseArtwork.hold() : frames = const [null];
-  const ExerciseArtwork.movement() : frames = const [null, null];
-  const ExerciseArtwork(this.frames);
-  final List<String?> frames;
+import 'exercise_artwork.dart';
+export 'exercise_artwork.dart';
+
+/// Also observes dialogs, so a covered preview stops until its route is visible.
+final exerciseVisualRouteObserver = RouteObserver<ModalRoute<dynamic>>();
+
+class ExerciseVisual extends StatefulWidget {
+  const ExerciseVisual({
+    super.key,
+    required this.slug,
+    this.frame,
+    this.playing = true,
+  });
+  final String slug;
+  /// Supply an index for a still preview; null enables illustrative playback.
+  final int? frame;
+  final bool playing;
+
+  @override
+  State<ExerciseVisual> createState() => _ExerciseVisualState();
 }
 
-const coreArtwork = <String, ExerciseArtwork>{
-  'pelvic-tilt': ExerciseArtwork.movement(),
-  'supine-heel-slide': ExerciseArtwork.movement(),
-  'bent-knee-fallout': ExerciseArtwork.movement(),
-  'modified-knee-plank': ExerciseArtwork.hold(),
-  'bird-dog': ExerciseArtwork.movement(),
-  'dead-bug': ExerciseArtwork.movement(),
-  'plank': ExerciseArtwork.hold(),
-  'side-plank': ExerciseArtwork.hold(),
-  'crunch': ExerciseArtwork.movement(),
-  'bicycle-crunch': ExerciseArtwork.movement(),
-  'reverse-crunch': ExerciseArtwork.movement(),
-  'leg-raise': ExerciseArtwork.movement(),
-  'hollow-body-hold': ExerciseArtwork.hold(),
-  'single-leg-abdominal-press': ExerciseArtwork.movement(),
-  'modified-side-plank': ExerciseArtwork.hold(),
-  'double-leg-abdominal-press': ExerciseArtwork.movement(),
-};
+class _ExerciseVisualState extends State<ExerciseVisual>
+    with SingleTickerProviderStateMixin, WidgetsBindingObserver, RouteAware {
+  late final AnimationController _controller;
+  ModalRoute<dynamic>? _route;
+  bool _visible = true;
+  bool _foreground = true;
+  int _step = 0;
 
-class ExerciseVisual extends StatelessWidget {
-  const ExerciseVisual({super.key, required this.slug, this.frame = 0});
-  final String slug;
-  // Future frame playback can drive this index without changing the screen layout.
-  final int frame;
+  ExerciseArtwork? get _artwork => coreArtwork[widget.slug];
+
+  @override
+  void initState() {
+    super.initState();
+    _foreground = WidgetsBinding.instance.lifecycleState == null ||
+        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed;
+    WidgetsBinding.instance.addObserver(this);
+    _controller = AnimationController(vsync: this)..addListener(_onTick);
+  }
+
+  void _onTick() {
+    final length = _artwork?.sequence.length ?? 1;
+    final next = (_controller.value * length).floor() % length;
+    if (next != _step) setState(() => _step = next);
+  }
+
+  void _syncPlayback() {
+    final artwork = _artwork;
+    final enabled = artwork != null && artwork.frames.length > 1 &&
+        widget.frame == null && widget.playing && _visible && _foreground &&
+        TickerMode.of(context) && !MediaQuery.disableAnimationsOf(context);
+    if (!enabled) {
+      _controller.stop();
+    } else if (!_controller.isAnimating) {
+      // Demonstration cadence only; never controls reps, workout or rest clocks.
+      _controller.duration = Duration(milliseconds: 750 * artwork!.sequence.length);
+      _controller.repeat();
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (_route != route) {
+      exerciseVisualRouteObserver.unsubscribe(this);
+      _route = route;
+      if (route != null) exerciseVisualRouteObserver.subscribe(this, route);
+    }
+    _visible = route?.isCurrent ?? true;
+    _syncPlayback();
+  }
+
+  @override
+  void didUpdateWidget(covariant ExerciseVisual oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.slug != widget.slug || oldWidget.frame != widget.frame) {
+      _controller.stop();
+      _controller.value = 0;
+      _step = 0;
+    }
+    _syncPlayback();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    _foreground = state == AppLifecycleState.resumed;
+    _syncPlayback();
+  }
+
+  @override
+  void didPushNext() {
+    _visible = false;
+    _syncPlayback();
+  }
+
+  @override
+  void didPopNext() {
+    _visible = true;
+    _syncPlayback();
+  }
+
+  @override
+  void dispose() {
+    exerciseVisualRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final frames = coreArtwork[slug]?.frames;
-    final path = frames == null || frames.isEmpty ? null : frames[frame % frames.length];
+    final artwork = _artwork;
+    final path = artwork == null || artwork.frames.isEmpty ? null
+        : artwork.frames[(widget.frame ?? artwork.sequence[_step % artwork.sequence.length]) % artwork.frames.length];
     final placeholder = Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -51,14 +126,21 @@ class ExerciseVisual extends StatelessWidget {
       ],
     );
     return Container(
-      height: 190,
+      height: 220,
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.circular(24),
       ),
-      child: path == null ? placeholder : Image.asset(path, fit: BoxFit.contain,
+      child: path == null ? placeholder : Semantics(
+        label: 'Minh họa tư thế. Thực hiện theo hướng dẫn, tự đếm số lần.',
+        image: true,
+        // A fixed frame size and gapless playback avoid flashes during decoding.
+        // AssetImage uses Flutter's shared image cache for repeated frames.
+        child: Image.asset(path, width: 220, height: 220,
+          fit: BoxFit.contain, gaplessPlayback: true, excludeFromSemantics: true,
           errorBuilder: (_, __, ___) => placeholder),
+      ),
     );
   }
 }

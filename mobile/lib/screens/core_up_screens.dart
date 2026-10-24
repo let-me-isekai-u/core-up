@@ -68,6 +68,7 @@ class CoreUp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'CoreUp',
+        navigatorObservers: [exerciseVisualRouteObserver],
         theme: ThemeData(
           brightness: Brightness.dark,
           scaffoldBackgroundColor: Colors.transparent,

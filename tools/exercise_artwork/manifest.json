@@ -1,0 +1,251 @@
+{
+  "plank": {
+    "type": "static",
+    "frames": [
+      "assets/exercises/plank/static.png"
+    ],
+    "sequence": [
+      0
+    ],
+    "sha256": [
+      "4f07e682fbd484ea5adcefb2cfb45054fdb7d5ec2d34a7b2ae972d282d7a7343"
+    ]
+  },
+  "side-plank": {
+    "type": "static",
+    "frames": [
+      "assets/exercises/side-plank/static.png"
+    ],
+    "sequence": [
+      0
+    ],
+    "sha256": [
+      "0a7c1a40ab9868826e226ebe37ac1c9790b1be341292b448845f4c0af96260bf"
+    ]
+  },
+  "modified-knee-plank": {
+    "type": "static",
+    "frames": [
+      "assets/exercises/modified-knee-plank/static.png"
+    ],
+    "sequence": [
+      0
+    ],
+    "sha256": [
+      "e4acc932307b103dd981019d2feba49511900c5d37a27ab9f17c46fc38995f42"
+    ]
+  },
+  "modified-side-plank": {
+    "type": "static",
+    "frames": [
+      "assets/exercises/modified-side-plank/static.png"
+    ],
+    "sequence": [
+      0
+    ],
+    "sha256": [
+      "6edd192b18427a003333ad318c8c530a5682abe59d20830a7ef6927f973807d0"
+    ]
+  },
+  "hollow-body-hold": {
+    "type": "static",
+    "frames": [
+      "assets/exercises/hollow-body-hold/static.png"
+    ],
+    "sequence": [
+      0
+    ],
+    "sha256": [
+      "d330be5ace6bcd9120bb7010ee9da0365622fa529c06889a92697024d2168529"
+    ]
+  },
+  "bird-dog": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/bird-dog/frame_1.png",
+      "assets/exercises/bird-dog/frame_2.png",
+      "assets/exercises/bird-dog/frame_3.png"
+    ],
+    "sequence": [
+      0,
+      1,
+      0,
+      2
+    ],
+    "sha256": [
+      "f74319ab0ea8fc0a277ea354fdf18f839f989dc3c183a00838dcb101c77a2f91",
+      "300dee40993bb8f5293e38a01a20db2532641c6fbe480870f7f8cfa929a00e14",
+      "a064ad02f92ce9816545432344cb49bdfb9f8395bf93e5c91d3cb6ca36f011fb"
+    ]
+  },
+  "crunch": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/crunch/frame_1.png",
+      "assets/exercises/crunch/frame_2.png"
+    ],
+    "sequence": [
+      0,
+      1
+    ],
+    "sha256": [
+      "cf9975832b662a767ad0e3532d96aaf8d9e176eb7a2751ea8aa52e603f5c5773",
+      "8d40ebbbf635cc4a80c0afaba136c6742609347840c5325c38cd3aef77a38346"
+    ]
+  },
+  "bicycle-crunch": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/bicycle-crunch/frame_1.png",
+      "assets/exercises/bicycle-crunch/frame_2.png",
+      "assets/exercises/bicycle-crunch/frame_3.png"
+    ],
+    "sequence": [
+      0,
+      1,
+      0,
+      2
+    ],
+    "sha256": [
+      "49cde582dce349a9195e72e72a48793a2b26078008ef33e142c639a4b0ffbd51",
+      "14b17cea7ab7f0fc1ca4d5547ef9465dd53414b275dca105a5aa876aaf623117",
+      "e5bb10acd76bd0bf9b12c45dcabdcf49a0b434049867eacccde5c1386ba29a6a"
+    ]
+  },
+  "reverse-crunch": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/reverse-crunch/frame_1.png",
+      "assets/exercises/reverse-crunch/frame_2.png"
+    ],
+    "sequence": [
+      0,
+      1
+    ],
+    "sha256": [
+      "43acaa1619e0f8e99c9582fdc15d81f2c3b5a5a5703c6a55b8d48c48e5b1cf2d",
+      "f73a44a31f30f1f289c8d9ab5e94fa765f7e2d3e65465753d077d3bcc1d52889"
+    ]
+  },
+  "leg-raise": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/leg-raise/frame_1.png",
+      "assets/exercises/leg-raise/frame_2.png"
+    ],
+    "sequence": [
+      0,
+      1
+    ],
+    "sha256": [
+      "3befef4f3357046bae4df3be9c4d6f33c019f08255cf05eeabd447e4d470ba70",
+      "29493d489c842470ed2b6e17100bffbbf2b9fbd88540dbc324598ab02dc55e7d"
+    ]
+  },
+  "dead-bug": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/dead-bug/frame_1.png",
+      "assets/exercises/dead-bug/frame_2.png",
+      "assets/exercises/dead-bug/frame_3.png"
+    ],
+    "sequence": [
+      0,
+      1,
+      0,
+      2
+    ],
+    "sha256": [
+      "203ea04cf8c11829005917c05a5b5da47f09af23490552770e08012742e63822",
+      "3910c09b9a928571f88567081a943ad204b88757eed98e5139f7ec5658faed2b",
+      "b5e3398e4a05289afd7c06be5e7b95c895c2f41a02b6c17a388967e4550ae43a"
+    ]
+  },
+  "pelvic-tilt": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/pelvic-tilt/frame_1.png",
+      "assets/exercises/pelvic-tilt/frame_2.png"
+    ],
+    "sequence": [
+      0,
+      1
+    ],
+    "sha256": [
+      "dced2c200ea843cd8b6162ef2f046474eb7cc7ce3a220e9385dc1808d0951029",
+      "eda1ba78a80ee4569ec09a423ecf4f38cd5ebc261671faaf24bf0d63e4c68df4"
+    ]
+  },
+  "supine-heel-slide": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/supine-heel-slide/frame_1.png",
+      "assets/exercises/supine-heel-slide/frame_2.png",
+      "assets/exercises/supine-heel-slide/frame_3.png"
+    ],
+    "sequence": [
+      0,
+      1,
+      0,
+      2
+    ],
+    "sha256": [
+      "cf9975832b662a767ad0e3532d96aaf8d9e176eb7a2751ea8aa52e603f5c5773",
+      "da2f938463a6aae757db601a90be11966d51e96eb4b8b9ab293838d9c18df449",
+      "32e9f80316388e01f70776ad9467b079fbb304f06cd5e919284b0f97ff01046e"
+    ]
+  },
+  "bent-knee-fallout": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/bent-knee-fallout/frame_1.png",
+      "assets/exercises/bent-knee-fallout/frame_2.png",
+      "assets/exercises/bent-knee-fallout/frame_3.png"
+    ],
+    "sequence": [
+      0,
+      1,
+      0,
+      2
+    ],
+    "sha256": [
+      "9e342e3e5d1a0c582005ff678abb53c9035dfbfddf2c1fe510989ce7e82aa96c",
+      "8d4bbd2d5de815833f1309eb1d235cbfac4a2af694ed50872bf26dbbef51ff6d",
+      "accf0f45f80d6362767286602b82e3e54ed2dced4368359a2391715a6fac6200"
+    ]
+  },
+  "single-leg-abdominal-press": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/single-leg-abdominal-press/frame_1.png",
+      "assets/exercises/single-leg-abdominal-press/frame_2.png",
+      "assets/exercises/single-leg-abdominal-press/frame_3.png"
+    ],
+    "sequence": [
+      0,
+      1,
+      0,
+      2
+    ],
+    "sha256": [
+      "cf9975832b662a767ad0e3532d96aaf8d9e176eb7a2751ea8aa52e603f5c5773",
+      "e8d5ef80eea22002ff544a96e9c2cc2a31eb63a01d406a300cab6ef15aac54c4",
+      "379068e7c17f5582137474da7caaed569a76c530cceeef3ffe8e8d42b0ddf2e0"
+    ]
+  },
+  "double-leg-abdominal-press": {
+    "type": "dynamic",
+    "frames": [
+      "assets/exercises/double-leg-abdominal-press/frame_1.png",
+      "assets/exercises/double-leg-abdominal-press/frame_2.png"
+    ],
+    "sequence": [
+      0,
+      1
+    ],
+    "sha256": [
+      "cf9975832b662a767ad0e3532d96aaf8d9e176eb7a2751ea8aa52e603f5c5773",
+      "8f4396ffd23021fc1e061d7bebe0f4e2edb95690642a93bf730b31fe6b464348"
+    ]
+  }
+}

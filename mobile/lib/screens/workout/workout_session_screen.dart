@@ -239,7 +239,11 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen>
               onAddTime: () => setState(() => _restRemaining += 5),
             )
           else ...[
-            ExerciseVisual(slug: exercise['slug'].toString()),
+            ExerciseVisual(
+              slug: exercise['slug'].toString(),
+              playing: !_blocked && (preview ||
+                  (_phase == _WorkoutPhase.active && !_setFinished)),
+            ),
             const SizedBox(height: 20),
             Text(exercise['name'].toString(), textAlign: TextAlign.center,
                 style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w800)),
