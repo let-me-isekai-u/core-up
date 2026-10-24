@@ -14,8 +14,12 @@ public sealed class WorkoutSessionService(IApplicationDbContext db)
 
         if (!plan.IsActive)
             throw new AppException(409, "Giáo trình đã đổi. Hãy tải lại kế hoạch đang hoạt động.");
-        if (!await db.UserProfiles.AnyAsync(x => x.UserId == userId && x.QuestionnaireCompletedAt != null, ct))
+        var profile = await db.UserProfiles.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == userId, ct);
+        var assessment = profile is null ? null : FitnessAssessmentScoring.FromProfile(profile);
+        if (assessment is null)
             throw new AppException(400, "Hãy hoàn tất questionnaire trước khi tập Free.");
+        // Applies to new starts only. Existing sessions/history are never rewritten.
+        FitnessAssessmentScoring.EnsureAllowedLevel(assessment, plan.Difficulty);
         if (plan.Exercises.Count == 0 || plan.Exercises.Any(x => !x.Exercise.IsActive || x.Exercise.MuscleGroup != "Core"))
             throw new AppException(422, "Giáo trình cũ có bài không còn phù hợp. Hãy xác nhận lại mức tập để nhận giáo trình Core chuẩn.");
 

@@ -137,9 +137,37 @@ class _ExerciseVisualState extends State<ExerciseVisual>
         image: true,
         // A fixed frame size and gapless playback avoid flashes during decoding.
         // AssetImage uses Flutter's shared image cache for repeated frames.
-        child: Image.asset(path, width: 220, height: 220,
+        child: Image.asset(path, key: ValueKey(widget.slug), width: 220, height: 220,
           fit: BoxFit.contain, gaplessPlayback: true, excludeFromSemantics: true,
           errorBuilder: (_, __, ___) => placeholder),
+      ),
+    );
+  }
+}
+
+/// Catalog thumbnail: no controller, ticker or slideshow is created per row.
+class ExerciseThumbnail extends StatelessWidget {
+  const ExerciseThumbnail({super.key, required this.slug});
+  final String slug;
+
+  @override
+  Widget build(BuildContext context) {
+    final artwork = coreArtwork[slug];
+    final path = artwork == null || artwork.frames.isEmpty ? null
+        : artwork.frames[artwork.isStatic ? 0 : 1];
+    final fallback = Icon(Icons.accessibility_new_rounded,
+        color: Theme.of(context).colorScheme.primary);
+    return SizedBox(
+      width: 80,
+      height: 64,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: path == null ? fallback : Image.asset(path,
+          key: ValueKey(slug), fit: BoxFit.contain, excludeFromSemantics: true,
+          errorBuilder: (_, __, ___) => fallback),
       ),
     );
   }

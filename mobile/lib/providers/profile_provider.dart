@@ -57,12 +57,17 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   Future<Map<String, dynamic>?> recommend(List<int> answers) async {
+    if (!api.isAuthenticated) return null;
+    syncAccount();
+    final owner = _owner;
     error = null;
     try {
       final response = await api.dio.post('/api/profile/fitness-assessment/preview',
         data: {'answers': answers});
+      if (owner != _owner || !api.isAuthenticated) return null;
       return Map<String, dynamic>.from(response.data);
     } catch (e) {
+      if (owner != _owner) return null;
       error = _message(e);
       notifyListeners();
       return null;
@@ -78,6 +83,7 @@ class ProfileProvider extends ChangeNotifier {
   Future<bool> save(Map<String, dynamic> body) => _save('/api/profile', body);
 
   Future<bool> _save(String path, Map<String, dynamic> body, {bool put = false}) async {
+    if (!api.isAuthenticated) return false;
     syncAccount();
     final owner = _owner;
     loading = true;

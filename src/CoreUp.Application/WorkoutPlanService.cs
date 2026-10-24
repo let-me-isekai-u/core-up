@@ -39,6 +39,10 @@ public sealed class WorkoutPlanService(IApplicationDbContext db)
     // Profile/assessment and active-plan replacement are persisted in one SaveChanges transaction.
     internal async Task<WorkoutPlanResponse> ApplyStandardAsync(UserProfile profile, CancellationToken ct)
     {
+        var assessment = FitnessAssessmentScoring.FromProfile(profile)
+            ?? throw new AppException(400, "Hãy hoàn tất questionnaire và xác nhận mức tập trước.");
+        // Old saved overrides must not bypass today's selection policy through Generate.
+        FitnessAssessmentScoring.EnsureAllowedLevel(assessment, profile.FitnessLevel);
         var userId = profile.UserId;
         var exercises = await db.Exercises.Where(x => x.IsActive && x.MuscleGroup == "Core").ToListAsync(ct);
         var generated = WorkoutPlanGenerator.Generate(profile, exercises);

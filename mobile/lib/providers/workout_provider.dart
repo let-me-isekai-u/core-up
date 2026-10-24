@@ -58,23 +58,30 @@ class WorkoutProvider extends ChangeNotifier {
   }
 
   Future<void> loadExercises() async {
+    syncAccount();
+    final owner = _owner;
+    error = null;
     if (api.isGuest) {
       exercises = guestExercises.map(Map<String, dynamic>.from).toList();
       loading = false;
       notifyListeners();
       return;
     }
+    if (!api.isAuthenticated) return;
     loading = true;
     notifyListeners();
     try {
-      exercises = ((await api.dio.get('/api/exercises')).data as List)
+      final response = await api.dio.get('/api/exercises');
+      if (owner != _owner || !api.isAuthenticated) return;
+      exercises = (response.data as List)
           .map((x) => Map<String, dynamic>.from(x))
+          .where((x) => x['muscleGroup'] == 'Core')
           .toList();
     } catch (e) {
-      error = _message(e);
+      if (owner == _owner) error = _message(e);
+    } finally {
+      if (owner == _owner) { loading = false; notifyListeners(); }
     }
-    loading = false;
-    notifyListeners();
   }
 
   Future<void> loadProgress() async {

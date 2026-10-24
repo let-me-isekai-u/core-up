@@ -34,6 +34,9 @@ class ExerciseDetailScreen extends StatelessWidget {
               'Thực hiện đúng kỹ thuật và kiểm soát từng lần lặp.',
           style: const TextStyle(color: muted, height: 1.5),
         ),
+        const SizedBox(height: 12),
+        const Text('Dừng khi đau, chóng mặt, khó thở hoặc mất kiểm soát tư thế. Nếu có chấn thương hoặc chưa chắc khả năng tập, hãy hỏi chuyên viên y tế trước khi bắt đầu.',
+          style: TextStyle(color: muted, height: 1.5)),
         const SizedBox(height: 24),
         PrimaryButton(
           label: context.watch<AuthProvider>().isGuest ? 'BẮT ĐẦU GIÁO TRÌNH KHÁCH' : 'ĐÃ XEM HƯỚNG DẪN',

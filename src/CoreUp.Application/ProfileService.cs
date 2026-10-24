@@ -18,6 +18,7 @@ public sealed class ProfileService(IApplicationDbContext db, WorkoutPlanService 
         if (request.UserSelectedLevel is not FitnessLevel selected || !Enum.IsDefined(selected))
             throw new AppException(400, "Hãy xác nhận mức tập của bạn.");
         var result = FitnessAssessmentScoring.Evaluate(request.Answers, selected);
+        FitnessAssessmentScoring.EnsureAllowedLevel(result, selected);
         if (selected > result.RecommendedLevel && !request.ConfirmHigherLevel)
             throw new AppException(400, "Mức chọn cao hơn gợi ý. Hãy đọc và xác nhận cảnh báo trước khi tiếp tục.");
         var user = await db.Users.SingleOrDefaultAsync(x => x.Id == userId, ct)

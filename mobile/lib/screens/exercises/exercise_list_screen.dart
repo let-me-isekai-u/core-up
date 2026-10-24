@@ -23,6 +23,7 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
     final items = data.exercises
         .where(
           (x) =>
+              x['muscleGroup'] == 'Core' &&
               x['name'].toString().toLowerCase().contains(
                 _query.toLowerCase(),
               ) &&
@@ -77,6 +78,11 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
           Expanded(
             child: data.loading
                 ? const CoreUpChibiLoading(message: 'Đang tải bài tập...')
+                : data.error != null
+                ? Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                    Text(data.error!, textAlign: TextAlign.center),
+                    TextButton(onPressed: data.loadExercises, child: const Text('THỬ LẠI')),
+                  ]))
                 : items.isEmpty
                 ? const Center(
                     child: Text(
@@ -88,39 +94,27 @@ class _ExercisesScreenState extends State<ExercisesScreen> {
                     padding: const EdgeInsets.all(20),
                     itemCount: items.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 10),
-                    itemBuilder: (_, index) => SizedBox(
-                      height: 96,
-                      child: SurfaceCard(
-                        child: ListTile(
-                          contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(
-                            radius: 27,
-                            backgroundColor: AppColors.surfaceElevated,
-                            child: Icon(
-                              exerciseIcon(
-                                items[index]['muscleGroup'].toString(),
-                              ),
-                              color: blue,
-                            ),
-                          ),
-                          title: Text(
-                            items[index]['name'],
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Text(
-                            localizeValue(
-                                  items[index]['muscleGroup'].toString(),
-                                ) +
-                                ' • ' +
-                                localizeValue(
-                                  items[index]['difficulty'].toString(),
-                                ),
-                          ),
-                          onTap: () => Navigator.of(context).push(
-                            fadeRoute(ExerciseDetailScreen(item: items[index])),
-                          ),
-                          trailing: const Icon(Icons.chevron_right_rounded),
+                    itemBuilder: (_, index) => SurfaceCard(
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: ExerciseThumbnail(slug: items[index]['slug'].toString()),
+                        title: Text(
+                          items[index]['name'],
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
+                        subtitle: Text(
+                          localizeValue(
+                                items[index]['muscleGroup'].toString(),
+                              ) +
+                              ' • ' +
+                              localizeValue(
+                                items[index]['difficulty'].toString(),
+                              ),
+                        ),
+                        onTap: () => Navigator.of(context).push(
+                          fadeRoute(ExerciseDetailScreen(item: items[index])),
+                        ),
+                        trailing: const Icon(Icons.chevron_right_rounded),
                       ),
                     ),
                   ),

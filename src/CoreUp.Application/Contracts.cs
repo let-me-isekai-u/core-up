@@ -157,4 +157,11 @@ public sealed class MeasurementsRequest
 
 public sealed record FitnessAssessmentResponse(
     FitnessLevel RecommendedLevel, string Explanation, IReadOnlyList<string> SafetyNotes,
-    FitnessLevel? UserSelectedLevel, IReadOnlyList<int> Answers, int Score, int Version);
+    FitnessLevel? UserSelectedLevel, IReadOnlyList<int> Answers, int Score, int Version)
+{
+    // Selection policy is additive response metadata, not a new questionnaire version.
+    public bool HasSafetyConcern => Answers.Count != 7 || Answers[6] != 0;
+    public IReadOnlyList<FitnessLevel> AllowedLevels => HasSafetyConcern
+        ? [FitnessLevel.Beginner]
+        : [FitnessLevel.Beginner, FitnessLevel.Intermediate, FitnessLevel.Advanced];
+}
