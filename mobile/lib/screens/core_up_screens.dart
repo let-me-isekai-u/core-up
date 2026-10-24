@@ -12,6 +12,8 @@ import '../core/utils/minimum_loading_duration.dart';
 import '../providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../providers/workout_provider.dart';
+import '../providers/entitlement_provider.dart';
+import '../services/ad_policy.dart';
 import '../widgets/workout/exercise_visual.dart';
 import 'onboarding/onboarding_screen.dart';
 import '../services/premium_promotion_policy.dart';
@@ -33,6 +35,7 @@ part 'workout/simulated_ad.dart';
 part 'workout/workout_completed_screen.dart';
 part 'progress/progress_screen.dart';
 part 'profile/profile_screen.dart';
+part 'profile/google_link_dialog.dart';
 part '../widgets/common/core_widgets.dart';
 part '../widgets/common/coreup_chibi_loading.dart';
 
@@ -60,10 +63,21 @@ class CoreUp extends StatelessWidget {
             return provider;
           },
         ),
-        ChangeNotifierProxyProvider<AuthProvider, WorkoutProvider>(
-          create: (context) => WorkoutProvider(context.read<AuthProvider>()),
+        ChangeNotifierProxyProvider<AuthProvider, EntitlementProvider>(
+          create: (context) => EntitlementProvider(context.read<AuthProvider>()),
           update: (_, auth, previous) {
-            final provider = previous ?? WorkoutProvider(auth);
+            final provider = previous ?? EntitlementProvider(auth);
+            provider.syncAccount();
+            return provider;
+          },
+          lazy: false,
+        ),
+        ChangeNotifierProxyProvider<AuthProvider, WorkoutProvider>(
+          create: (context) => WorkoutProvider(context.read<AuthProvider>(),
+            adPolicy: AdPolicy(entitlement: context.read<EntitlementProvider>())),
+          update: (context, auth, previous) {
+            final provider = previous ?? WorkoutProvider(auth,
+              adPolicy: AdPolicy(entitlement: context.read<EntitlementProvider>()));
             provider.syncAccount();
             return provider;
           },

@@ -1,7 +1,8 @@
-/// Only a verified Premium entitlement removes advertisements.
+/// Verified Premium removes ads; unresolved access defers ads without granting Premium.
 /// Inject an implementation backed by the authenticated account when available.
 abstract interface class PremiumEntitlement {
   bool get hasPremium;
+  bool get isKnown;
 }
 
 class AdPolicy {
@@ -9,5 +10,7 @@ class AdPolicy {
   final PremiumEntitlement? entitlement;
 
   bool shouldShowAds({required bool isGuest}) =>
-      isGuest || !(entitlement?.hasPremium ?? false);
+      isGuest ||
+      (entitlement == null ||
+          (entitlement!.isKnown && !entitlement!.hasPremium));
 }

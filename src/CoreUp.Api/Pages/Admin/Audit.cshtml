@@ -1,0 +1,5 @@
+@page "/admin/audit"
+@model CoreUp.Api.Pages.Admin.AuditModel
+<h1>Audit quản trị</h1><p>Chỉ đọc · Trang @Model.PageNumber</p>
+@foreach(var e in Model.Events){<section><b>@e.Action</b> · @e.CreatedAt.ToString("u")<p>Actor: @(e.AdminUserId?.ToString() ?? "Local operator") · Target: @e.TargetUserId</p><p>@e.Reason</p><details><summary>Trạng thái trước / sau</summary><pre>@e.PreviousState</pre><pre>@e.NewState</pre></details></section>}
+<nav>@if(Model.PageNumber > 1){<a asp-page="/Admin/Audit" asp-route-pageNumber="@(Model.PageNumber-1)">Trang trước</a>}@if(Model.More){<a asp-page="/Admin/Audit" asp-route-pageNumber="@(Model.PageNumber+1)">Trang sau</a>}</nav>

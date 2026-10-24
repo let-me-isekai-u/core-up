@@ -7,6 +7,10 @@ namespace CoreUp.Infrastructure.Persistence;
 public sealed class CoreUpDbContext(DbContextOptions<CoreUpDbContext> options)
     : DbContext(options), IApplicationDbContext
 {
+    public DbSet<UserExternalLogin> ExternalLogins => Set<UserExternalLogin>();
+    public DbSet<PremiumEntitlement> PremiumEntitlements => Set<PremiumEntitlement>();
+    public DbSet<AdminAuditEvent> AdminAuditEvents => Set<AdminAuditEvent>();
+
     public DbSet<EmailChallenge> EmailChallenges => Set<EmailChallenge>();
     public DbSet<User> Users => Set<User>();
     public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
@@ -17,13 +21,21 @@ public sealed class CoreUpDbContext(DbContextOptions<CoreUpDbContext> options)
     public DbSet<WorkoutSessionExercise> WorkoutSessionExercises => Set<WorkoutSessionExercise>();
     public DbSet<WeightRecord> WeightRecords => Set<WeightRecord>();
 
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        if (ChangeTracker.Entries<AdminAuditEvent>().Any(e => e.State is EntityState.Modified or EntityState.Deleted))
+            throw new InvalidOperationException("Audit events are append-only.");
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        AccountAccessModel.Configure(modelBuilder);
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.ToTable("users");
+            entity.ToTable("users", t => t.HasCheckConstraint("CK_users_role", "\"Role\" IN ('User','Admin')"));
             entity.HasKey(x => x.Id);
             entity.Property(x => x.TokenVersion).IsConcurrencyToken();
             entity.Property(x => x.Username).HasMaxLength(24).IsRequired();
@@ -31,7 +43,8 @@ public sealed class CoreUpDbContext(DbContextOptions<CoreUpDbContext> options)
                 .HasComputedColumnSql("lower(\"Username\")", stored: true);
             entity.HasIndex(x => x.NormalizedUsername).IsUnique();
             entity.Property(x => x.Email).HasMaxLength(320).IsRequired();
-            entity.Property(x => x.PasswordHash).HasMaxLength(1000).IsRequired();
+            entity.Property(x => x.PasswordHash).HasMaxLength(1000);
+            entity.Property(x => x.Role).HasConversion<string>().HasMaxLength(16).HasDefaultValue(ApplicationRole.User);
             entity.HasIndex(x => x.Email).IsUnique();
         });
 

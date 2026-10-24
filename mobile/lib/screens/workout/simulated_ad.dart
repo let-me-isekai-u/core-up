@@ -38,7 +38,18 @@ class _SimulatedAdState extends State<SimulatedAd> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final premium = context.watch<EntitlementProvider>().hasPremium;
+    if (premium && !_closed && !widget.paused) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _closed || widget.paused) return;
+        _closed = true;
+        _timer?.cancel();
+        widget.onClosed();
+      });
+    }
+    if (premium) return const SizedBox.shrink();
+    return Scaffold(
     backgroundColor: surface,
     body: SafeArea(
       child: Center(
@@ -65,4 +76,5 @@ class _SimulatedAdState extends State<SimulatedAd> {
       ),
     ),
   );
+  }
 }

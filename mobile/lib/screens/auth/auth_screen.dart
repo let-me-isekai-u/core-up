@@ -67,6 +67,24 @@ class _AuthScreenState extends State<AuthScreen> {
                 style: TextStyle(color: muted),
               ),
               const SizedBox(height: 28),
+              OutlinedButton.icon(
+                icon: const Icon(Icons.login_rounded),
+                label: const Text('TIẾP TỤC VỚI GOOGLE'),
+                onPressed: () async {
+                  if (_submitting) return;
+                  setState(() => _submitting = true);
+                  final response = await auth.googleSignIn();
+                  if (!mounted) return;
+                  setState(() => _submitting = false);
+                  if (response == null) return;
+                  Navigator.of(context).pushReplacement(fadeRoute(
+                    response.needsEmailVerification ? const EmailVerificationScreen() : const ProfileSetupScreen(),
+                  ));
+                },
+              ),
+              if (!_showForm && auth.error != null)
+                Text(auth.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+              const SizedBox(height: 12),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 480),
                 reverseDuration: const Duration(milliseconds: 360),

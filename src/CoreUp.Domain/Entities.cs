@@ -9,7 +9,8 @@ public sealed class User
     public string Username { get; set; } = string.Empty;
     public string NormalizedUsername { get; private set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
-    public string PasswordHash { get; set; } = string.Empty;
+    public string? PasswordHash { get; set; }
+    public ApplicationRole Role { get; set; } = ApplicationRole.User;
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public UserProfile? Profile { get; set; }

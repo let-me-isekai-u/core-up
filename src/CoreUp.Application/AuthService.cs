@@ -47,6 +47,8 @@ public sealed class AuthService(
         var user = await db.Users.Include(x => x.Profile).SingleOrDefaultAsync(x => x.NormalizedUsername == username, ct)
             ?? throw new AppException(401, "Tên tài khoản hoặc mật khẩu không đúng.");
 
+        if (string.IsNullOrEmpty(user.PasswordHash))
+            throw new AppException(401, "Tên tài khoản hoặc mật khẩu không đúng.");
         var result = passwordHasher.VerifyHashedPassword(user, user.PasswordHash, request.Password);
         if (result == PasswordVerificationResult.Failed)
             throw new AppException(401, "Tên tài khoản hoặc mật khẩu không đúng.");

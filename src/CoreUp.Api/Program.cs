@@ -1,3 +1,4 @@
+using CoreUp.Api.Administration;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Text;
@@ -90,9 +91,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 builder.Services.AddAuthorization();
+builder.AddAdmin();
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("admin-login", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 5, Window = TimeSpan.FromMinutes(1), QueueLimit = 0 }));
     options.AddPolicy("auth", context => RateLimitPartition.GetFixedWindowLimiter(
         context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
         _ => new FixedWindowRateLimiterOptions
@@ -115,10 +120,41 @@ else
     app.UseHttpsRedirection();
 }
 
+app.Use(async (context, next) => {
+    if (context.Request.Path.StartsWithSegments("/admin")) {
+        var remote = context.Connection.RemoteIpAddress;
+        if (remote == null || !System.Net.IPAddress.IsLoopback(remote)) {
+            context.Response.StatusCode = 403; return;
+        }
+        if (!context.Request.IsHttps) {
+            context.Response.StatusCode = 400;
+            await context.Response.WriteAsync("Admin requires HTTPS. Use https://localhost:7031/admin with the https launch profile."); return;
+        }
+        // Administration must not run using an operator/superuser connection.
+        var accessDb = context.RequestServices.GetRequiredService<CoreUpDbContext>();
+        var elevated = await accessDb.Database.SqlQueryRaw<bool>("""
+            SELECT (r.rolsuper OR r.rolcreatedb OR r.rolcreaterole
+                OR EXISTS (SELECT 1 FROM pg_database d WHERE d.datname = current_database() AND d.datdba = r.oid)
+                OR EXISTS (SELECT 1 FROM pg_tables t WHERE t.schemaname = current_schema() AND t.tableowner = current_user)) AS "Value"
+            FROM pg_roles r WHERE r.rolname = current_user
+            """).SingleAsync(context.RequestAborted);
+        if (elevated) {
+            context.Response.StatusCode = 503;
+            await context.Response.WriteAsync("Admin requires a dedicated least-privilege application database connection. See tools/admin/README.md."); return;
+        }
+        context.Response.Headers.CacheControl = "no-store";
+        context.Response.Headers["X-Frame-Options"] = "DENY";
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; frame-ancestors 'none'; form-action 'self'; base-uri 'none'";
+    }
+    await next(context);
+});
+app.UseRouting();
 app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapRazorPages();
 app.MapGet("/health", async (CoreUpDbContext db, CancellationToken ct) =>
     await db.Database.CanConnectAsync(ct)
         ? Results.Ok(new { status = "Healthy", database = "Connected" })

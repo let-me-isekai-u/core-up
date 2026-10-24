@@ -139,6 +139,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         trailing: const Icon(Icons.chevron_right_rounded),
         onTap: () => _openPremiumPromotion(context, manual: true),
       ),
+      ListTile(
+        leading: const Icon(Icons.link_rounded),
+        title: const Text('Liên kết Google'),
+        subtitle: const Text('Xác nhận mật khẩu Core-Up và Google cùng email'),
+        onTap: () => _linkGoogleAccount(context),
+      ),
       const SectionLabel('CHỈ SỐ TÙY CHỌN'),
       Row(
         children: [

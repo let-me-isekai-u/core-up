@@ -37,6 +37,7 @@ public static class DependencyInjection
         services.AddHostedService(sp => sp.GetRequiredService<SmtpEmailSender>());
         services.Configure<JwtOptions>(configuration.GetSection(JwtOptions.SectionName));
         services.AddScoped<IJwtTokenService, JwtTokenService>();
+        services.AddScoped<GoogleIdentityService>();
         return services;
     }
 }

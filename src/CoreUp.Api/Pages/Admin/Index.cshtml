@@ -1,0 +1,5 @@
+@page "/admin"
+@model CoreUp.Api.Pages.Admin.IndexModel
+<h1>Tổng quan tài khoản</h1><div class="stats"><div class="card">Tài khoản<strong class="metric">@Model.Total</strong></div><div class="card">Premium hiện tại<strong class="metric">@Model.Premium</strong></div><div class="card">Không Premium<strong class="metric">@(Model.Total - Model.Premium)</strong></div><div class="card">Hết hạn<strong class="metric">@Model.Expired</strong></div></div>
+<section><h2>Đăng ký gần đây</h2>@foreach(var u in Model.Recent){<p><a asp-page="/Admin/User" asp-route-id="@u.Id">@u.Username</a> · @u.CreatedAt.ToString("u")</p>}</section>
+<section><h2>Hoạt động quản trị gần đây</h2>@foreach(var e in Model.Events){<p>@e.CreatedAt.ToString("u") · @e.Action · @e.TargetUserId</p>}<a href="/admin/audit">Xem audit</a></section>

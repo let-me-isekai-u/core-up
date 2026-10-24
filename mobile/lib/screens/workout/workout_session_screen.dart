@@ -108,6 +108,8 @@ class _WorkoutSessionScreenState extends State<WorkoutSessionScreen>
     try {
       await _workout.complete(current);
       if (!mounted || _left) return;
+      await context.read<EntitlementProvider>().refresh();
+      if (!mounted || _left) return;
       setState(() => _phase = _WorkoutPhase.afterExercise);
       _advanceCompletedExercise();
     } catch (_) {

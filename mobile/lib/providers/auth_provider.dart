@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/auth/auth_response.dart';
+import '../services/google_auth_service.dart';
 import '../core/storage/local_storage_service.dart';
 
 const apiBaseUrl = String.fromEnvironment(
@@ -171,6 +172,53 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  void _requireGoogleTransport() {
+    final uri = Uri.parse(apiBaseUrl);
+    final localDebug = kDebugMode && ['localhost', '127.0.0.1', '10.0.2.2', '::1'].contains(uri.host);
+    if (uri.scheme != 'https' && !localDebug) {
+      throw StateError('Google Sign-In yêu cầu backend HTTPS (HTTP chỉ dành cho localhost debug).');
+    }
+  }
+
+  Future<AuthResponse?> googleSignIn() async {
+    if (submitting) return null;
+    submitting = true; error = null; fieldErrors = {}; notifyListeners();
+    try {
+      _requireGoogleTransport();
+      final idToken = await GoogleAuthService.instance.idToken();
+      if (idToken == null) return null;
+      final response = await dio.post('/api/auth/google', data: {'idToken': idToken});
+      final data = AuthResponse.fromJson(Map<String, dynamic>.from(response.data));
+      token = data.accessToken; needsProfile = data.needsProfile;
+      needsEmailVerification = data.needsEmailVerification;
+      verificationRequired = data.verificationRequired; email = data.email;
+      await _storage.write(key: tokenStorageKey, value: token);
+      await localStorage.saveSessionMode('authenticated');
+      status = AuthStatus.authenticated;
+      return data;
+    } catch (e) {
+      error = e is StateError ? e.message.toString() : message(e);
+      return null;
+    } finally { submitting = false; notifyListeners(); }
+  }
+
+  Future<bool> linkGoogle(String password) async {
+    if (!isAuthenticated || submitting) return false;
+    submitting = true; error = null; notifyListeners();
+    final owner = token;
+    try {
+      _requireGoogleTransport();
+      final idToken = await GoogleAuthService.instance.idToken();
+      if (idToken == null || token != owner) return false;
+      await dio.post('/api/auth/google/link', data: {'idToken': idToken, 'currentPassword': password});
+      await logout();
+      return true;
+    } catch (e) {
+      error = e is StateError ? e.message.toString() : securityMessage(e);
+      return false;
+    } finally { submitting = false; notifyListeners(); }
+  }
+
   Future<bool> securityAction(String path, Map<String, dynamic> data) async {
     error = null;
     try {
@@ -194,6 +242,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    await GoogleAuthService.instance.signOut();
     token = null;
     needsProfile = false;
     needsEmailVerification = false;

@@ -24,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() => _loadingMessage = 'Đang chuẩn bị kế hoạch của bạn...');
     await withMinimumLoading(() async {
       await Future.wait([
+        context.read<EntitlementProvider>().refresh(),
         context.read<ProfileProvider>().load(),
         context.read<WorkoutProvider>().home(),
         context.read<WorkoutProvider>().loadProgress(),

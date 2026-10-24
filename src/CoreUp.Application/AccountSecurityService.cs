@@ -132,6 +132,8 @@ public sealed class AccountSecurityService(
     public async Task ChangePasswordAsync(Guid userId, ChangePasswordRequest request, CancellationToken ct)
     {
         var user = await User(userId, ct);
+        if (string.IsNullOrEmpty(user.PasswordHash))
+            throw new AppException(400, "Tài khoản dùng Google. Dùng khôi phục qua email để thiết lập mật khẩu trước.");
         if (passwords.VerifyHashedPassword(user, user.PasswordHash, request.CurrentPassword) == PasswordVerificationResult.Failed)
             throw new AppException(400, "Mật khẩu hiện tại không đúng.");
         if (passwords.VerifyHashedPassword(user, user.PasswordHash, request.NewPassword) != PasswordVerificationResult.Failed)

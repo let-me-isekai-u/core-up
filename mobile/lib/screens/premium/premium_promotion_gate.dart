@@ -5,12 +5,15 @@ bool _premiumEligible(BuildContext context, {required bool manual}) {
   final profile = context.read<ProfileProvider>();
   final workout = context.read<WorkoutProvider>();
   final session = workout.session;
+  final entitlement = context.read<EntitlementProvider>();
   return auth.isAuthenticated &&
       !auth.submitting &&
       !(auth.verificationRequired && auth.needsEmailVerification) &&
       profile.data?['id'] != null &&
       !profile.loading &&
       profile.error == null &&
+      !entitlement.loading &&
+      entitlement.loaded &&
       !(workout.adPolicy.entitlement?.hasPremium ?? false) &&
       (session == null ||
           session['status'] == 'Completed' ||
@@ -91,9 +94,21 @@ class PremiumPromotionGate extends StatefulWidget {
 }
 
 class _PremiumPromotionGateState extends State<PremiumPromotionGate>
-    with RouteAware {
+    with RouteAware, WidgetsBindingObserver {
   ModalRoute<dynamic>? _route;
   bool _queued = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed)
+      context.read<EntitlementProvider>().refresh();
+  }
 
   @override
   void didChangeDependencies() {
@@ -121,11 +136,15 @@ class _PremiumPromotionGateState extends State<PremiumPromotionGate>
   }
 
   @override
-  void didPopNext() => _schedule();
+  void didPopNext() {
+    context.read<EntitlementProvider>().refresh();
+    _schedule();
+  }
 
   @override
   void dispose() {
     exerciseVisualRouteObserver.unsubscribe(this);
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
@@ -134,6 +153,7 @@ class _PremiumPromotionGateState extends State<PremiumPromotionGate>
     context.watch<AuthProvider>();
     context.watch<ProfileProvider>();
     context.watch<WorkoutProvider>();
+    context.watch<EntitlementProvider>();
     _schedule();
     return widget.child;
   }
