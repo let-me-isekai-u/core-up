@@ -12,7 +12,10 @@ class _ShellScreenState extends State<ShellScreen> {
   final _pages = const [HomeScreen(), ProgressScreen(), ProfileScreen()];
   @override
   Widget build(BuildContext context) => Scaffold(
-    body: IndexedStack(index: _tab, children: _pages),
+    body: PremiumPromotionGate(
+      homeActive: _tab == 0,
+      child: IndexedStack(index: _tab, children: _pages),
+    ),
     bottomNavigationBar: Theme(
       data: Theme.of(context).copyWith(
         navigationBarTheme: const NavigationBarThemeData(

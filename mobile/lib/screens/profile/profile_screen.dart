@@ -132,6 +132,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       ),
       const SizedBox(height: 14),
+      ListTile(
+        leading: const Icon(Icons.workspace_premium_outlined),
+        title: const Text('Khám phá Premium'),
+        subtitle: const Text('Giới thiệu quyền lợi và gói giá đề xuất'),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => _openPremiumPromotion(context, manual: true),
+      ),
       const SectionLabel('CHỈ SỐ TÙY CHỌN'),
       Row(
         children: [

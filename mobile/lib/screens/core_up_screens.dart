@@ -14,6 +14,8 @@ import '../providers/profile_provider.dart';
 import '../providers/workout_provider.dart';
 import '../widgets/workout/exercise_visual.dart';
 import 'onboarding/onboarding_screen.dart';
+import '../services/premium_promotion_policy.dart';
+import 'premium/premium_paywall_screen.dart';
 
 part 'splash/splash_screen.dart';
 part 'auth/auth_screen.dart';
@@ -21,6 +23,7 @@ part 'auth/security_screens.dart';
 part 'profile/profile_setup_screen.dart';
 part 'profile/measurements_screen.dart';
 part 'home/app_shell.dart';
+part 'premium/premium_promotion_gate.dart';
 part 'home/home_screen.dart';
 part 'exercises/exercise_list_screen.dart';
 part 'exercises/exercise_detail_screen.dart';
@@ -47,6 +50,7 @@ class CoreUp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider.value(value: localStorage),
+        Provider(create: (_) => PremiumPromotionPolicy(localStorage)),
         ChangeNotifierProvider(create: (_) => AuthProvider(localStorage)),
         ChangeNotifierProxyProvider<AuthProvider, ProfileProvider>(
           create: (context) => ProfileProvider(context.read<AuthProvider>()),

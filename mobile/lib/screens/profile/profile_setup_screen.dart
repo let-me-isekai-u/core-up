@@ -134,6 +134,7 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     }
     setState(() { _saving = true; _message = null; });
     final profile = context.read<ProfileProvider>();
+    final firstAssessment = profile.data?['assessment'] == null;
     final ok = await profile.saveAssessment({
       'answers': _answers.cast<int>(),
       'userSelectedLevel': _selected,
@@ -146,6 +147,14 @@ class _ProfileSetupScreenState extends State<ProfileSetupScreen> {
     if (!mounted) return;
     if (ok) {
       final profileId = profile.data?['id']?.toString();
+      if (firstAssessment && profileId != null) {
+        try {
+          await context.read<LocalStorageService>().markPendingPremiumIntroduction(profileId);
+        } catch (_) {
+          // Promotion storage must never block the saved Free questionnaire.
+        }
+        if (!mounted) return;
+      }
       if (profileId != null) await context.read<LocalStorageService>().deferMeasurementReview(profileId);
       if (!mounted) return;
       await context.read<WorkoutProvider>().home();

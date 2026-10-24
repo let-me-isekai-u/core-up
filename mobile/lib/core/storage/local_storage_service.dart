@@ -7,6 +7,33 @@ class LocalStorageService {
   static const _sessionModeKey = 'app_session_mode';
   static const _debugProcessKey = 'debug_process_id';
 
+  Future<DateTime?> premiumPromotionTime(String account) async {
+    final preferences = await SharedPreferences.getInstance();
+    return DateTime.tryParse(preferences.getString('premium_promotion_at_$account') ?? '');
+  }
+
+  Future<void> savePremiumPromotionTime(String account, DateTime time) async {
+    final preferences = await SharedPreferences.getInstance();
+    if (!await preferences.setString('premium_promotion_at_$account', time.toIso8601String())) {
+      throw StateError('Could not save promotion history.');
+    }
+  }
+
+  Future<bool> hasPendingPremiumIntroduction(String account) async {
+    final preferences = await SharedPreferences.getInstance();
+    return preferences.getBool('premium_introduction_pending_$account') ?? false;
+  }
+
+  Future<void> markPendingPremiumIntroduction(String account) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool('premium_introduction_pending_$account', true);
+  }
+
+  Future<void> clearPendingPremiumIntroduction(String account) async {
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.remove('premium_introduction_pending_$account');
+  }
+
   Future<bool> hasSeenOnboarding() async {
     final preferences = await SharedPreferences.getInstance();
     return preferences.getBool(_onboardingKey) ?? false;
