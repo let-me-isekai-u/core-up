@@ -139,3 +139,24 @@ CSRF/login rate cap/HTTPS/cookie expiration; pagination/search; concurrent grant
 renewal validation, expiry/revoke and unchanged histories; audit immutability;
 Flutter account switch, unknown entitlement, ad cancellation, resume/expiry.
 No automated tests or app builds were run for this source change.
+
+## Local Control Panel operator (owner-requested)
+
+Development localhost can use a dedicated browser operator independent of the
+mobile users table. Enable `LocalAdmin:Enabled` and configure `LocalAdmin:Username`
+and `LocalAdmin:Password` through private runtime configuration/environment. In
+Development the optional private `~/.config/core-up/backend-runtime.json` file is
+read first; explicit application/environment configuration takes precedence. No
+credentials are included in Git. Production always disables this operator.
+
+This operator signs only the AdminCookie session and receives no Core-Up mobile
+JWT or Premium entitlement. It does not create a mobile user, require an email or
+change client password rules. Existing verified application administrators remain
+supported. The localhost/HTTPS, cookie, CSRF, session expiration and least-privilege
+DB requirements still apply. Server restart invalidates local operator sessions.
+
+Migration `20261024143037_LocalPanelAdministrator` makes grant actor attribution
+nullable for the independent operator. Local panel changes write append-only audit
+actions prefixed `LocalPanel:` with null application-user actor; a real target user
+and reason remain mandatory. Grants/revocations retain their transactional checks.
+Down deliberately refuses to invent a mobile actor for existing audit history.

@@ -23,7 +23,7 @@ public sealed class PremiumEntitlement
     public DateTime GrantedAt { get; set; }
     public DateTime? ExpiresAt { get; set; }
     public DateTime? RevokedAt { get; set; }
-    public Guid GrantedByAdminId { get; set; }
+    public Guid? GrantedByAdminId { get; set; }
     public Guid? RevokedByAdminId { get; set; }
     public string? RevocationReason { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -34,7 +34,7 @@ public sealed class PremiumEntitlement
 public sealed class AdminAuditEvent
 {
     public Guid Id { get; set; }
-    // Null actor is reserved for an explicit local operator bootstrap.
+    // Null actor identifies a local operator; Action distinguishes bootstrap/panel actions.
     public Guid? AdminUserId { get; set; }
     public Guid TargetUserId { get; set; }
     public string Action { get; set; } = string.Empty;

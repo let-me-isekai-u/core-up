@@ -44,8 +44,7 @@ public sealed class UserModel(CoreUpDbContext db, AccountAccessService access) :
             else if (Duration != "forever") { ModelState.AddModelError("", "Chọn thời hạn hợp lệ (UTC)."); return Page(); }
         }
         try {
-            var actor = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-            await access.ChangeAsync(actor,id,operation == "revoke",expires,Duration == "forever",Extend,Reason,ExpectedRevision,ct);
+            await access.ChangeAsync(User,id,operation == "revoke",expires,Duration == "forever",Extend,Reason,ExpectedRevision,ct);
             return RedirectToPage("/Admin/User", new { id });
         } catch (AppException ex) {
             ModelState.AddModelError("", ex.Message); return Page();

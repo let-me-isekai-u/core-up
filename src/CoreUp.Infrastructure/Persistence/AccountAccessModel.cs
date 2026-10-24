@@ -18,7 +18,7 @@ internal static class AccountAccessModel
         model.Entity<PremiumEntitlement>(e => {
             e.ToTable("premium_entitlements", t => {
                 t.HasCheckConstraint("CK_premium_dates", "\"ExpiresAt\" IS NULL OR \"ExpiresAt\" > \"GrantedAt\"");
-                t.HasCheckConstraint("CK_premium_state", "(\"Status\" = 'Active' AND \"RevokedAt\" IS NULL AND \"RevokedByAdminId\" IS NULL) OR (\"Status\" = 'Revoked' AND \"RevokedAt\" IS NOT NULL AND \"RevokedByAdminId\" IS NOT NULL AND \"RevocationReason\" IS NOT NULL AND length(\"RevocationReason\") > 0)");
+                t.HasCheckConstraint("CK_premium_state", "(\"Status\" = 'Active' AND \"RevokedAt\" IS NULL AND \"RevokedByAdminId\" IS NULL) OR (\"Status\" = 'Revoked' AND \"RevokedAt\" IS NOT NULL AND \"RevocationReason\" IS NOT NULL AND length(\"RevocationReason\") > 0)");
                 t.HasCheckConstraint("CK_premium_source", "\"Source\" = 'AdminDemoGrant'");
             });
             e.HasKey(x => x.Id); e.HasIndex(x => x.UserId).IsUnique();

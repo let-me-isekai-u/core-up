@@ -15,6 +15,7 @@ public static class AdminSetup
     public const string CookieScheme = "AdminCookie";
     public static void AddAdmin(this WebApplicationBuilder builder)
     {
+        builder.Services.AddSingleton<LocalPanelAdministrator>();
         builder.Services.AddScoped<AccountAccessService>();
         builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
         builder.Services.AddScoped<IAuthorizationHandler, PremiumAuthorizationHandler>();
@@ -29,6 +30,8 @@ public static class AdminSetup
             options.SlidingExpiration = false;
             options.Events.OnRedirectToAccessDenied = context => { context.Response.StatusCode = 403; return Task.CompletedTask; };
             options.Events.OnValidatePrincipal = async context => {
+                var panel = context.HttpContext.RequestServices.GetRequiredService<LocalPanelAdministrator>();
+                if (context.Principal is not null && panel.IsAuthenticated(context.Principal)) return;
                 var idText = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
                 var version = context.Principal?.FindFirstValue("token_version");
                 var db = context.HttpContext.RequestServices.GetRequiredService<CoreUpDbContext>();

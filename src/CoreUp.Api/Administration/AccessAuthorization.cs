@@ -10,10 +10,11 @@ namespace CoreUp.Api.Administration;
 public sealed record AdminRequirement : IAuthorizationRequirement;
 public sealed record PremiumRequirement : IAuthorizationRequirement;
 
-public sealed class AdminAuthorizationHandler(CoreUpDbContext db) : AuthorizationHandler<AdminRequirement>
+public sealed class AdminAuthorizationHandler(CoreUpDbContext db, LocalPanelAdministrator panel) : AuthorizationHandler<AdminRequirement>
 {
     protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, AdminRequirement requirement)
     {
+        if (panel.IsAuthenticated(context.User)) { context.Succeed(requirement); return; }
         if (Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) &&
             await db.Users.AsNoTracking().AnyAsync(x => x.Id == id && x.Role == ApplicationRole.Admin && x.EmailVerified))
             context.Succeed(requirement);

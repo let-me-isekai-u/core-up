@@ -1,4 +1,5 @@
 using System.Data;
+using System.Security.Claims;
 using System.Text.Json;
 using CoreUp.Application;
 using CoreUp.Domain;
@@ -9,7 +10,7 @@ namespace CoreUp.Infrastructure.Administration;
 
 public sealed record EntitlementResponse(bool HasPremium, string Status, string? Source, DateTime? ExpiresAt);
 
-public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock)
+public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock, LocalPanelAdministrator panel)
 {
     public async Task<EntitlementResponse> CurrentAsync(Guid userId, CancellationToken ct)
     {
@@ -19,7 +20,7 @@ public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock)
         return new(active, e.Status == PremiumStatus.Revoked ? "Revoked" : active ? "Active" : "Expired", e.Source.ToString(), e.ExpiresAt);
     }
 
-    public async Task ChangeAsync(Guid actor, Guid target, bool revoke, DateTime? expiration,
+    public async Task ChangeAsync(ClaimsPrincipal administrator, Guid target, bool revoke, DateTime? expiration,
         bool nonExpiring, bool extend, string reason, int expectedRevision, CancellationToken ct)
     {
         reason = reason.Trim();
@@ -29,7 +30,9 @@ public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock)
             throw new AppException(400, "Select a future UTC expiration or explicitly select non-expiring access.");
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         // Recheck authorization inside the transaction as well as at the HTTP boundary.
-        if (!await db.Users.AnyAsync(x => x.Id == actor && x.Role == ApplicationRole.Admin && x.EmailVerified, ct))
+        var localPanel = panel.IsAuthenticated(administrator);
+        Guid? actor = Guid.TryParse(administrator.FindFirstValue(ClaimTypes.NameIdentifier), out var actorId) ? actorId : null;
+        if (!localPanel && (actor == null || !await db.Users.AnyAsync(x => x.Id == actor && x.Role == ApplicationRole.Admin && x.EmailVerified, ct)))
             throw new AppException(403, "Administrator access required.");
         if (!await db.Users.AnyAsync(x => x.Id == target, ct)) throw new AppException(404, "Account not found.");
         var e = await db.PremiumEntitlements.SingleOrDefaultAsync(x => x.UserId == target, ct);
@@ -53,7 +56,7 @@ public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock)
         }
         e.UpdatedAt = now; e.Revision++;
         db.AdminAuditEvents.Add(new AdminAuditEvent { Id = Guid.NewGuid(), AdminUserId = actor, TargetUserId = target,
-            Action = revoke ? "PremiumRevoked" : active ? "PremiumExtended" : "PremiumGranted",
+            Action = (localPanel ? "LocalPanel:" : "") + (revoke ? "PremiumRevoked" : active ? "PremiumExtended" : "PremiumGranted"),
             PreviousState = previous, NewState = JsonSerializer.Serialize(e), Reason = reason, CreatedAt = now });
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);

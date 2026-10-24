@@ -1,6 +1,8 @@
 @page "/admin/login"
 @model CoreUp.Api.Pages.Admin.LoginModel
-<h1>Đăng nhập quản trị</h1><section><p>Chỉ tài khoản Admin đã xác minh email. Phiên hết hạn sau 30 phút.</p>
+<h1>Đăng nhập quản trị</h1><section>
+@if (Model.LocalPanelEnabled) { <p>Đăng nhập Control Panel bằng tài khoản quản trị cục bộ. Phiên hết hạn sau 30 phút.</p> }
+else { <p>Chỉ tài khoản Admin đã xác minh email. Phiên hết hạn sau 30 phút.</p> }
 <form method="post"><div asp-validation-summary="All" class="error"></div>
 <label>Tên tài khoản <input asp-for="Username" autocomplete="username" maxlength="24" required/></label>
 <label>Mật khẩu <input asp-for="Password" type="password" autocomplete="current-password" maxlength="128" required/></label>

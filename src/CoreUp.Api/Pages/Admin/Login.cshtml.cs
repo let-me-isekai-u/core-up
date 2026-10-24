@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using CoreUp.Api.Administration;
 using CoreUp.Domain;
+using CoreUp.Infrastructure.Administration;
 using CoreUp.Infrastructure.Persistence;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
@@ -13,13 +14,19 @@ using Microsoft.EntityFrameworkCore;
 namespace CoreUp.Api.Pages.Admin;
 
 [EnableRateLimiting("admin-login")]
-public sealed class LoginModel(CoreUpDbContext db, IPasswordHasher<User> passwords) : PageModel
+public sealed class LoginModel(CoreUpDbContext db, IPasswordHasher<User> passwords, LocalPanelAdministrator panel) : PageModel
 {
     [BindProperty, Required, MaxLength(24)] public string Username { get; set; } = "";
     [BindProperty, Required, MaxLength(128)] public string Password { get; set; } = "";
+    public bool LocalPanelEnabled => panel.Enabled;
     public async Task<IActionResult> OnPostAsync(CancellationToken ct)
     {
         if (!ModelState.IsValid) return Page();
+        if (panel.Validate(Username, Password)) {
+            await HttpContext.SignInAsync(AdminSetup.CookieScheme, panel.CreatePrincipal(),
+                new AuthenticationProperties { IsPersistent = false, AllowRefresh = false });
+            return RedirectToPage("/Admin/Index");
+        }
         var name = Username.Trim().ToLowerInvariant();
         var user = await db.Users.SingleOrDefaultAsync(x => x.NormalizedUsername == name, ct);
         if (user == null || user.Role != ApplicationRole.Admin || !user.EmailVerified || string.IsNullOrEmpty(user.PasswordHash) ||
