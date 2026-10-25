@@ -166,3 +166,9 @@ Down deliberately refuses to invent a mobile actor for existing audit history.
 - Premium grant/revoke reason is optional; blank input gets an automatic audit description without schema changes.
 - Admin user detail includes profile metrics, training preferences and questionnaire answers. Original passwords cannot be recovered from hashes; an admin password-reset form replaces the password and revokes prior sessions. Passwords are never included in audit records.
 - Validation: backend build 0 errors/warnings; live HTTP registration/me, admin blank-reason Premium grant, password reset/login, and old-token rejection passed. QA account `qa_local_1792852908` retained for inspection. No Flutter commands or simulator run.
+
+### Local OTP inbox (2026-10-25)
+- `/admin/otp` displays Core-Up OTP emails from local Mailpit (`localhost:8025`) in a paginated table: username, email, password-set state, six-digit code, purpose, UTC sent time, and user-detail link. Available in Development under existing Admin authorization.
+- Refresh retrieves the latest messages; emails remain in Mailpit, no duplicate plaintext OTP/password database storage. Five-minute labels describe message age, not guaranteed validity (codes may have been consumed or replaced).
+- Users table includes password state and a password-reset link. Shared table styling improved for readable headers, row hover, and horizontal scrolling on smaller screens.
+- Validation: backend build passed with zero warnings/errors; live HTTP checked anonymous redirect, admin login, freshly sent OTP for existing QA account, matching account/detail link, and healthy database. Flutter and Simulator were not run.

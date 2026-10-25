@@ -1,0 +1,16 @@
+@page "/admin/otp"
+@model CoreUp.Api.Pages.Admin.OtpModel
+<div class="toolbar"><div><h1>Hộp thư OTP</h1><p>Mã trong email Core-Up vừa gửi, mới nhất ở trên.</p></div><a href="/admin/otp">↻ Tải mã mới nhất</a></div>
+<p class="muted">OTP có hiệu lực 5 phút. Mã đã dùng hoặc bị thay thế bởi lần gửi mới không còn hiệu lực. Đăng ký mới hiện không gửi OTP; email xác minh hoặc quên mật khẩu vẫn xuất hiện tại đây.</p>
+@if(Model.Error != null){<section role="alert" class="error">@Model.Error</section>}
+<div class="table"><table><thead><tr><th>Tài khoản</th><th>Email / Gmail</th><th>Mật khẩu</th><th>Mã OTP</th><th>Mục đích</th><th>Gửi lúc (UTC)</th><th>Thao tác</th></tr></thead><tbody>
+@foreach(var row in Model.Rows){
+<tr><td><strong>@row.Username</strong></td><td>@row.Email</td><td>@(row.HasPassword ? "Đã đặt (lưu dạng băm)" : "Chưa có mật khẩu")</td><td><code class="otp">@row.Code</code><br/><span class="badge">@(row.SentAt.AddMinutes(5) <= DateTimeOffset.UtcNow ? "Quá 5 phút" : "Gửi trong 5 phút qua")</span></td><td>@row.Subject</td><td>@row.SentAt.UtcDateTime.ToString("yyyy-MM-dd HH:mm:ss")</td><td>@if(row.UserId is {} id){<a asp-page="/Admin/User" asp-route-id="@id">Chi tiết / đặt mật khẩu</a>}</td></tr>
+}
+@if(Model.Rows.Count == 0 && Model.Error == null){<tr><td colspan="7">Chưa có email OTP Core-Up trên trang này. Gửi yêu cầu OTP rồi chọn “Tải mã mới nhất”.</td></tr>}
+</tbody></table></div>
+<div class="toolbar"><p class="muted">Trang @Model.PageNumber · @Model.Total email trong hộp thư local</p><nav>
+@if(Model.PageNumber > 1){<a asp-route-pageNumber="@(Model.PageNumber-1)">Trang trước</a>}
+@if(Model.PageNumber*25 < Model.Total){<a asp-route-pageNumber="@(Model.PageNumber+1)">Trang sau</a>}
+</nav></div>
+<p class="muted">Mật khẩu gốc không thể đọc lại từ dữ liệu băm. Mở chi tiết tài khoản để đặt mật khẩu mới.</p>

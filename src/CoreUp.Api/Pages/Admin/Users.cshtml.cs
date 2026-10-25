@@ -10,7 +10,7 @@ public sealed class UsersModel(CoreUpDbContext db) : PageModel
     [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
     public int Total { get; private set; }
     public List<Row> Rows { get; private set; } = [];
-    public sealed record Row(Guid Id, string Username, string Email, DateTime CreatedAt, bool EmailVerified, ApplicationRole Role, bool Premium, DateTime? ExpiresAt);
+    public sealed record Row(Guid Id, string Username, string Email, DateTime CreatedAt, bool EmailVerified, ApplicationRole Role, bool HasPassword, bool Premium, DateTime? ExpiresAt);
     public async Task OnGetAsync(CancellationToken ct) {
         PageNumber = Math.Clamp(PageNumber, 1, 1000000);
         var query = db.Users.AsNoTracking();
@@ -23,7 +23,7 @@ public sealed class UsersModel(CoreUpDbContext db) : PageModel
         Total = await query.CountAsync(ct);
         var now = DateTime.UtcNow;
         Rows = await query.OrderByDescending(x => x.CreatedAt).ThenBy(x => x.Id).Skip((PageNumber-1)*25).Take(25)
-            .Select(u => new Row(u.Id, u.Username, u.Email, u.CreatedAt, u.EmailVerified, u.Role,
+            .Select(u => new Row(u.Id, u.Username, u.Email, u.CreatedAt, u.EmailVerified, u.Role, u.PasswordHash != null,
                 db.PremiumEntitlements.Any(e => e.UserId == u.Id && e.Status == PremiumStatus.Active && (e.ExpiresAt == null || e.ExpiresAt > now)),
                 db.PremiumEntitlements.Where(e => e.UserId == u.Id).Select(e => e.ExpiresAt).FirstOrDefault())).ToListAsync(ct);
     }

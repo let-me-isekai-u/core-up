@@ -16,6 +16,10 @@ public static class AdminSetup
     public static void AddAdmin(this WebApplicationBuilder builder)
     {
         builder.Services.AddSingleton<LocalPanelAdministrator>();
+        builder.Services.AddHttpClient("LocalMailpit", client => {
+            client.BaseAddress = new Uri("http://localhost:8025/");
+            client.Timeout = TimeSpan.FromSeconds(5);
+        });
         builder.Services.AddScoped<AccountAccessService>();
         builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
         builder.Services.AddScoped<IAuthorizationHandler, PremiumAuthorizationHandler>();
