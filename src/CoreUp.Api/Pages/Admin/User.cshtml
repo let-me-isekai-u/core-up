@@ -1,10 +1,10 @@
 @page "/admin/users/{id:guid}"
 @model CoreUp.Api.Pages.Admin.UserModel
 @if(Model.Notice != null){<p role="status">@Model.Notice</p>}
-<h1>@Model.Account?.Username</h1><section><p>@Model.Account?.Email</p><p>ID: @Model.Account?.Id</p><p>Đăng ký: @Model.Account?.CreatedAt.ToString("u") · @Model.Account?.Role · @(Model.Account?.EmailVerified == true ? "Email đã xác minh" : "Email chưa xác minh")</p>
+<div asp-validation-summary="All" class="error" role="alert"></div><h1>@Model.Account?.Username</h1><section><p>@Model.Account?.Email</p><p>ID: @Model.Account?.Id</p><p>Đăng ký: @Model.Account?.CreatedAt.ToString("u") · @Model.Account?.Role · @(Model.Account?.EmailVerified == true ? "Email đã xác minh" : "Email chưa xác minh")</p>
 <h2>Premium: @Model.Access?.Status</h2><p>Nguồn: @(Model.Access?.Source ?? "—") · Hết hạn: @(Model.Access?.ExpiresAt?.ToString("u") ?? (Model.Access?.HasPremium == true ? "Không thời hạn" : "—"))</p></section>
 <section><h2>Thay đổi quyền demo</h2><p>Thao tác chỉ ảnh hưởng quyền Premium. Không xóa tài khoản, questionnaire hoặc lịch sử tập.</p>
-<form method="post"><div asp-validation-summary="All" class="error"></div><input type="hidden" asp-for="ExpectedRevision"/>
+<form method="post" data-sensitive="true"><div asp-validation-summary="All" class="error"></div><input type="hidden" asp-for="ExpectedRevision"/>
 <label>Thời hạn tính từ hiện tại <select asp-for="Duration"><option value="7">7 ngày</option><option value="30">30 ngày</option><option value="180">180 ngày</option><option value="365">365 ngày</option><option value="custom">Tùy chọn UTC</option><option value="forever">Demo không thời hạn (chọn rõ ràng)</option></select></label>
 <label>Ngày hết hạn UTC nếu tùy chọn <input asp-for="CustomUtc" type="datetime-local"/></label>
 <label><input asp-for="Extend"/> Tôi chủ đích gia hạn quyền đang Active (ngày mới phải muộn hơn ngày hiện có).</label>
@@ -24,4 +24,22 @@
 }else{<p>Người dùng chưa tạo hồ sơ.</p>}
 </section>
 <section><h2>Mật khẩu</h2><p>@(Model.HasPassword ? "Đã có mật khẩu (lưu dạng băm, không thể xem mật khẩu gốc)." : "Tài khoản chưa có mật khẩu riêng.")</p>
-<form method="post" asp-page-handler="Password"><label>Mật khẩu mới <input asp-for="NewPassword" type="password" autocomplete="new-password" maxlength="128" required /></label><button>Đặt lại mật khẩu</button></form></section>
+<form method="post" asp-page-handler="Recovery"><label><input asp-for="Confirm" required /> Gửi email để người dùng tự đặt lại mật khẩu.</label><button>Gửi yêu cầu reset</button></form>
+@if(Model.CanSetPassword){<p>Development: đặt mật khẩu trực tiếp. Chưa có cơ chế buộc đổi mật khẩu ở lần đăng nhập sau.</p><form method="post" asp-page-handler="Password" data-sensitive="true"><label>Mật khẩu mới <input asp-for="NewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required /></label><label><input asp-for="Confirm" required /> Tôi xác nhận đặt lại mật khẩu cho @Model.Account?.Username và thu hồi các phiên đăng nhập cũ.</label><button>Đặt lại mật khẩu</button></form>}</section>
+
+<section><h2>Phương thức đăng nhập</h2><p>Password: @(Model.HasPassword ? "Có" : "Không") · Google: @(Model.HasGoogle ? "Đã liên kết" : "Chưa liên kết")</p></section>
+<section><h2>Lịch sử quản trị gần nhất</h2>
+@if(Model.History.Count == 0){<p>Chưa có thao tác quản trị.</p>}
+else{<div class="table"><table><thead><tr><th>UTC</th><th>Thao tác</th><th>Quản trị viên</th><th>Lý do</th></tr></thead><tbody>
+@foreach(var entry in Model.History){<tr><td>@entry.CreatedAt.ToString("u")</td><td>@entry.Action</td><td>@(entry.AdminUserId?.ToString() ?? "Local operator")</td><td>@entry.Reason</td></tr>}
+</tbody></table></div><p>Hiển thị tối đa 50 thao tác mới nhất. Xem Nhật ký quản trị để duyệt thêm.</p>}
+</section>
+
+<section><h2>Vòng đời tài khoản: @Model.Account?.AccountState</h2>
+<p>Xóa mềm chặn đăng nhập và giữ hồ sơ, lịch sử cùng audit. Có thể khôi phục. Chưa hỗ trợ xóa vĩnh viễn.</p>
+<form method="post" asp-page-handler="Lifecycle" data-sensitive="true">
+<label>Bước 1 — nhập username đích <input asp-for="TargetConfirmation" required autocomplete="off" /></label>
+<label><input asp-for="Confirm" required /> Bước 2 — tôi xác nhận thay đổi tài khoản này và thu hồi mọi phiên cũ.</label>
+<button name="operation" value="disable">Vô hiệu hóa</button> <button name="operation" value="restore">Kích hoạt lại</button>
+<button name="operation" value="sessions">Thu hồi phiên</button> <button name="operation" value="delete">Xác nhận xóa mềm</button>
+</form></section>

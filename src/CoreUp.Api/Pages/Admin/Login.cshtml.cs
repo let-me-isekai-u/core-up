@@ -29,14 +29,14 @@ public sealed class LoginModel(CoreUpDbContext db, IPasswordHasher<User> passwor
         }
         var name = Username.Trim().ToLowerInvariant();
         var user = await db.Users.SingleOrDefaultAsync(x => x.NormalizedUsername == name, ct);
-        if (user == null || user.Role != ApplicationRole.Admin || !user.EmailVerified || string.IsNullOrEmpty(user.PasswordHash) ||
+        if (user == null || user.AccountState != "Active" || user.Role != ApplicationRole.Admin || !user.EmailVerified || string.IsNullOrEmpty(user.PasswordHash) ||
             passwords.VerifyHashedPassword(user, user.PasswordHash, Password) == PasswordVerificationResult.Failed) {
             await Task.Delay(300, ct);
             ModelState.AddModelError("", "Không thể đăng nhập quản trị bằng thông tin này.");
             Password = ""; ModelState.Remove(nameof(Password)); return Page();
         }
         var identity = new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-            new Claim("token_version", user.TokenVersion.ToString()) }, AdminSetup.CookieScheme);
+            new Claim(ClaimTypes.Name, user.Username), new Claim("token_version", user.TokenVersion.ToString()) }, AdminSetup.CookieScheme);
         await HttpContext.SignInAsync(AdminSetup.CookieScheme, new ClaimsPrincipal(identity),
             new AuthenticationProperties { IsPersistent = false, AllowRefresh = false });
         return RedirectToPage("/Admin/Index");

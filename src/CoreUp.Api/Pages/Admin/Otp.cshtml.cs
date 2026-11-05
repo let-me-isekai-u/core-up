@@ -13,13 +13,15 @@ public sealed class OtpModel(CoreUpDbContext db, IHttpClientFactory clients, IWe
     public sealed record Mail(string ID, string Subject, string Snippet, DateTimeOffset Created, List<Recipient>? To);
     public sealed record Inbox(int Total, List<Mail> Messages);
     public sealed record Row(Guid? UserId, string Username, string Email, bool HasPassword, string Code, string Subject, DateTimeOffset SentAt);
+    [BindProperty(SupportsGet = true)] public string? Search { get; set; }
     public List<Row> Rows { get; } = [];
     public string? Error { get; private set; }
     public int Total { get; private set; }
     [BindProperty(SupportsGet = true)] public int PageNumber { get; set; } = 1;
     public async Task<IActionResult> OnGetAsync(CancellationToken ct)
     {
-        if (!environment.IsDevelopment()) return NotFound();
+        if (!environment.IsDevelopment() || HttpContext.Connection.RemoteIpAddress is not {} remote || !System.Net.IPAddress.IsLoopback(remote)) return NotFound();
+        Response.Headers.CacheControl = "no-store";
         PageNumber = Math.Clamp(PageNumber, 1, 100000);
         try {
             var inbox = await clients.CreateClient("LocalMailpit").GetFromJsonAsync<Inbox>($"api/v1/messages?start={(PageNumber-1)*25}&limit=25", ct);
@@ -40,6 +42,7 @@ public sealed class OtpModel(CoreUpDbContext db, IHttpClientFactory clients, IWe
         } catch (Exception ex) when (ex is HttpRequestException or System.Text.Json.JsonException || ex is TaskCanceledException && !ct.IsCancellationRequested) {
             Error = "Chưa đọc được hộp thư OTP. Kiểm tra Mailpit của Core-Up ở localhost:8025 rồi tải lại.";
         }
+        if (!string.IsNullOrWhiteSpace(Search)) Rows.RemoveAll(x => !(x.Email + " " + x.Username + " " + x.Subject).Contains(Search.Trim(), StringComparison.OrdinalIgnoreCase));
         return Page();
     }
 }

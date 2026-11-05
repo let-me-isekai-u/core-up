@@ -794,6 +794,7 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("CoreUp.Domain.User", b =>
                 {
+                    b.Property<string>("AccountState").IsRequired().ValueGeneratedOnAdd().HasMaxLength(24).HasColumnType("character varying(24)").HasDefaultValue("Active");
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");

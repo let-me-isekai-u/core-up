@@ -1,0 +1,3 @@
+@page "/admin/system"
+@model CoreUp.Api.Pages.Admin.SystemModel
+<h1>Cấu hình hệ thống</h1><section><p>Chỉ đọc — không hiển thị secrets hoặc chuỗi kết nối.</p><dl><dt>Môi trường</dt><dd>@Model.EnvironmentName</dd><dt>Google audience allowlist</dt><dd>@(Model.GoogleConfigured ? "Có cấu hình — cần nghiệm thu bằng token thật" : "BLOCKED BY CONFIGURATION — thiếu Google:ClientIds")</dd><dt>OTP</dt><dd>Mailpit localhost:8025; viewer chỉ Development và Admin localhost.</dd><dt>Account lifecycle</dt><dd>Cần migration 20261105090000_AccountLifecycle trước khi chạy bản source mới.</dd><dt>Thanh toán</dt><dd>CUP-084 BLOCKED. Premium demo không phải giao dịch.</dd></dl></section>

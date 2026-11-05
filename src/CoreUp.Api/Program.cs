@@ -71,7 +71,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 var versionClaim = principal.FindFirstValue("token_version");
                 var version = 0; // Legacy Phase 1 tokens remain valid until a password change.
                 if (versionClaim is not null && !int.TryParse(versionClaim, out version)) { context.Fail("Invalid session."); return; }
-                if (user is null || user.TokenVersion != version) { context.Fail("Session revoked."); return; }
+                if (user is null || user.AccountState != "Active" || user.TokenVersion != version) { context.Fail("Session revoked."); return; }
                 var path = context.Request.Path;
                 if (user.VerificationRequired && !user.EmailVerified &&
                     !path.StartsWithSegments("/api/auth/email-verification") && path != "/api/auth/me")

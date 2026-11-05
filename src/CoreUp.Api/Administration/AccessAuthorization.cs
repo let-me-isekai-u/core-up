@@ -16,7 +16,7 @@ public sealed class AdminAuthorizationHandler(CoreUpDbContext db, LocalPanelAdmi
     {
         if (panel.IsAuthenticated(context.User)) { context.Succeed(requirement); return; }
         if (Guid.TryParse(context.User.FindFirstValue(ClaimTypes.NameIdentifier), out var id) &&
-            await db.Users.AsNoTracking().AnyAsync(x => x.Id == id && x.Role == ApplicationRole.Admin && x.EmailVerified))
+            await db.Users.AsNoTracking().AnyAsync(x => x.Id == id && x.AccountState == "Active" && x.Role == ApplicationRole.Admin && x.EmailVerified))
             context.Succeed(requirement);
     }
 }

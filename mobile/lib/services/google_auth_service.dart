@@ -23,12 +23,14 @@ class GoogleAuthService {
         'Google Sign-In chỉ hỗ trợ iOS và Android trong Core-Up.',
       );
     }
-    if (server.isEmpty ||
-        (defaultTargetPlatform == TargetPlatform.iOS &&
-            (ios.isEmpty || !iosConfigured))) {
-      throw StateError(
-        'Chưa cấu hình Google OAuth. Cần Web Client ID; iOS cần Client ID và reversed URL scheme.',
-      );
+    if (server.isEmpty) {
+      throw StateError('Thiếu GOOGLE_SERVER_CLIENT_ID khi launch Flutter. Cần OAuth Web Client ID.');
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS && ios.isEmpty) {
+      throw StateError('Thiếu GOOGLE_IOS_CLIENT_ID khi launch Flutter. Cần OAuth iOS Client ID khớp Bundle ID.');
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS && !iosConfigured) {
+      throw StateError('Chưa xác nhận callback iOS. Cấu hình reversed URL scheme trong Info.plist rồi truyền GOOGLE_IOS_URL_SCHEME_CONFIGURED=true.');
     }
     await GoogleSignIn.instance.initialize(
       clientId: defaultTargetPlatform == TargetPlatform.iOS ? ios : null,
@@ -56,6 +58,9 @@ class GoogleAuthService {
     } catch (e) {
       _initialization = null;
       if (e is StateError) rethrow;
+      if (e is GoogleSignInException) {
+        throw StateError('Khởi tạo Google SDK thất bại (${e.code.name}). Kiểm tra iOS Client ID, Web Client ID và cấu hình native; SDK chưa bắt đầu xác thực.');
+      }
       throw StateError(
         'Chưa khởi tạo được Google Sign-In. Kiểm tra mạng và OAuth rồi thử lại.',
       );
@@ -74,9 +79,14 @@ class GoogleAuthService {
       return token;
     } on GoogleSignInException catch (e) {
       if (e.code == GoogleSignInExceptionCode.canceled) return null;
-      throw StateError(
-        'Không thể đăng nhập Google. Kiểm tra mạng và cấu hình OAuth rồi thử lại.',
-      );
+      throw StateError(switch (e.code) {
+        GoogleSignInExceptionCode.clientConfigurationError => 'Google từ chối cấu hình ứng dụng. Kiểm tra iOS Client ID, Bundle ID và reversed URL scheme.',
+        GoogleSignInExceptionCode.providerConfigurationError => 'Google SDK chưa sẵn sàng. Kiểm tra cấu hình OAuth của provider.',
+        GoogleSignInExceptionCode.interrupted => 'Đăng nhập Google bị gián đoạn. Thử lại khi ứng dụng đang mở.',
+        GoogleSignInExceptionCode.uiUnavailable => 'Chưa mở được giao diện Google. Quay lại màn hình đăng nhập rồi thử lại.',
+        GoogleSignInExceptionCode.userMismatch => 'Tài khoản Google đã thay đổi. Đăng xuất rồi chọn lại tài khoản.',
+        _ => 'Google Sign-In gặp lỗi SDK hoặc kết nối. Thử lại; nếu tiếp diễn, kiểm tra mạng và cấu hình Google Cloud.',
+      });
     }
   }
 

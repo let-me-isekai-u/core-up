@@ -2,6 +2,7 @@ namespace CoreUp.Domain;
 
 public sealed class User
 {
+    public string AccountState { get; set; } = "Active";
     public Guid Id { get; set; }
     public bool EmailVerified { get; set; }
     public bool VerificationRequired { get; set; }

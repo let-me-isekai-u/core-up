@@ -37,8 +37,11 @@ public sealed class GoogleIdentityService(CoreUpDbContext db, IConfiguration con
                 payload.Issuer is not ("accounts.google.com" or "https://accounts.google.com"))
                 throw new AppException(401, "Danh tính Google không hợp lệ hoặc email chưa xác minh.");
             return payload;
-        } catch (InvalidJwtException) {
-            throw new AppException(401, "Google ID token không hợp lệ hoặc đã hết hạn.");
+        } catch (InvalidJwtException ex) {
+            // Only classify library validation failures; never return the exception or token.
+            if (ex.Message.Contains("audience", StringComparison.OrdinalIgnoreCase))
+                throw new AppException(401, "Google token có audience không được server chấp nhận. Kiểm tra GOOGLE_SERVER_CLIENT_ID và Google:ClientIds.");
+            throw new AppException(401, "Google ID token không vượt qua kiểm tra signature, issuer hoặc thời hạn. Đăng nhập lại.");
         } catch (HttpRequestException) {
             throw new AppException(503, "Chưa kết nối được dịch vụ xác minh Google. Thử lại sau.");
         }

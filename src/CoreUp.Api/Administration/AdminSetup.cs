@@ -41,7 +41,7 @@ public static class AdminSetup
                 var db = context.HttpContext.RequestServices.GetRequiredService<CoreUpDbContext>();
                 var valid = Guid.TryParse(idText, out var id) && int.TryParse(version, out var tokenVersion) &&
                     await db.Users.AsNoTracking().AnyAsync(x => x.Id == id && x.EmailVerified &&
-                        x.Role == ApplicationRole.Admin && x.TokenVersion == tokenVersion, context.HttpContext.RequestAborted);
+                        x.AccountState == "Active" && x.Role == ApplicationRole.Admin && x.TokenVersion == tokenVersion, context.HttpContext.RequestAborted);
                 if (!valid) { context.RejectPrincipal(); await context.HttpContext.SignOutAsync(CookieScheme); }
             };
         });

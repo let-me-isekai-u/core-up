@@ -7,6 +7,7 @@ internal static class AccountAccessModel
 {
     public static void Configure(ModelBuilder model)
     {
+        model.Entity<User>().Property(x => x.AccountState).HasMaxLength(24).HasDefaultValue("Active");
         model.Entity<UserExternalLogin>(e => {
             e.ToTable("user_external_logins"); e.HasKey(x => x.Id);
             e.Property(x => x.Provider).HasMaxLength(32).IsRequired();

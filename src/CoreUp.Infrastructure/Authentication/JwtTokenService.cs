@@ -14,6 +14,7 @@ internal sealed class JwtTokenService(IOptions<JwtOptions> options) : IJwtTokenS
 
     public string Create(User user)
     {
+        if (user.AccountState != "Active") throw new AppException(403, "Tài khoản đã bị vô hiệu hóa. Liên hệ quản trị viên.");
         var claims = new[]
         {
             new Claim("token_version", user.TokenVersion.ToString(System.Globalization.CultureInfo.InvariantCulture)),

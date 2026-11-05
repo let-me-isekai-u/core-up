@@ -32,7 +32,7 @@ public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock,
         // Recheck authorization inside the transaction as well as at the HTTP boundary.
         var localPanel = panel.IsAuthenticated(administrator);
         Guid? actor = Guid.TryParse(administrator.FindFirstValue(ClaimTypes.NameIdentifier), out var actorId) ? actorId : null;
-        if (!localPanel && (actor == null || !await db.Users.AnyAsync(x => x.Id == actor && x.Role == ApplicationRole.Admin && x.EmailVerified, ct)))
+        if (!localPanel && (actor == null || !await db.Users.AnyAsync(x => x.Id == actor && x.AccountState == "Active" && x.Role == ApplicationRole.Admin && x.EmailVerified, ct)))
             throw new AppException(403, "Administrator access required.");
         if (!await db.Users.AnyAsync(x => x.Id == target, ct)) throw new AppException(404, "Account not found.");
         var e = await db.PremiumEntitlements.SingleOrDefaultAsync(x => x.UserId == target, ct);
