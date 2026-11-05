@@ -28,7 +28,7 @@ public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock,
         var now = clock.GetUtcNow().UtcDateTime;
         if (!revoke && ((!nonExpiring && expiration == null) || (nonExpiring && expiration != null) || expiration <= now))
             throw new AppException(400, "Select a future UTC expiration or explicitly select non-expiring access.");
-        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await using var tx = db.Database.CurrentTransaction == null ? await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct) : null;
         // Recheck authorization inside the transaction as well as at the HTTP boundary.
         var localPanel = panel.IsAuthenticated(administrator);
         Guid? actor = Guid.TryParse(administrator.FindFirstValue(ClaimTypes.NameIdentifier), out var actorId) ? actorId : null;
@@ -59,6 +59,6 @@ public sealed class AccountAccessService(CoreUpDbContext db, TimeProvider clock,
             Action = (localPanel ? "LocalPanel:" : "") + (revoke ? "PremiumRevoked" : active ? "PremiumExtended" : "PremiumGranted"),
             PreviousState = previous, NewState = JsonSerializer.Serialize(e), Reason = reason, CreatedAt = now });
         await db.SaveChangesAsync(ct);
-        await tx.CommitAsync(ct);
+        if (tx != null) await tx.CommitAsync(ct);
     }
 }

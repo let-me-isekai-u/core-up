@@ -22,6 +22,18 @@ namespace CoreUp.Infrastructure.Persistence.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("CoreUp.Domain.PremiumDemoRequest", b => {
+                b.Property<Guid>("Id").ValueGeneratedOnAdd().HasColumnType("uuid");
+                b.Property<Guid>("UserId").HasColumnType("uuid");
+                b.Property<string>("Status").IsRequired().HasMaxLength(16).HasColumnType("character varying(16)");
+                b.Property<string>("Reason").IsRequired().HasMaxLength(1000).HasColumnType("character varying(1000)");
+                b.Property<int>("Revision").IsConcurrencyToken().HasColumnType("integer");
+                b.Property<DateTime>("CreatedAt").HasColumnType("timestamp with time zone");
+                b.Property<DateTime?>("DecidedAt").HasColumnType("timestamp with time zone");
+                b.HasKey("Id"); b.HasIndex("UserId").IsUnique().HasFilter("\"Status\" = 'Pending'"); b.ToTable("premium_demo_requests");
+                b.HasOne("CoreUp.Domain.User", null).WithMany().HasForeignKey("UserId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+            });
+
             modelBuilder.Entity("CoreUp.Domain.AdminAuditEvent", b =>
                 {
                     b.Property<Guid>("Id")

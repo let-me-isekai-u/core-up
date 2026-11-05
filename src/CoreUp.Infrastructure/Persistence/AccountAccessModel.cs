@@ -8,6 +8,13 @@ internal static class AccountAccessModel
     public static void Configure(ModelBuilder model)
     {
         model.Entity<User>().Property(x => x.AccountState).HasMaxLength(24).HasDefaultValue("Active");
+        model.Entity<PremiumDemoRequest>(e => {
+            e.ToTable("premium_demo_requests"); e.HasKey(x=>x.Id);
+            e.Property(x=>x.Status).HasMaxLength(16); e.Property(x=>x.Reason).HasMaxLength(1000);
+            e.Property(x=>x.Revision).IsConcurrencyToken();
+            e.HasIndex(x=>x.UserId).IsUnique().HasFilter("\"Status\" = 'Pending'");
+            e.HasOne<User>().WithMany().HasForeignKey(x=>x.UserId).OnDelete(DeleteBehavior.Restrict);
+        });
         model.Entity<UserExternalLogin>(e => {
             e.ToTable("user_external_logins"); e.HasKey(x => x.Id);
             e.Property(x => x.Provider).HasMaxLength(32).IsRequired();

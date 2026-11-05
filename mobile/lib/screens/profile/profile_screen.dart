@@ -139,6 +139,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         trailing: const Icon(Icons.chevron_right_rounded),
         onTap: () => _openPremiumPromotion(context, manual: true),
       ),
+      ListTile(title: const Text('Yêu cầu trải nghiệm Premium demo'), leading: const Icon(Icons.mark_email_read_outlined), onTap: () => Navigator.of(context).push(fadeRoute(const PremiumDemoRequestScreen()))),
       ListTile(
         leading: const Icon(Icons.link_rounded),
         title: const Text('Liên kết Google'),

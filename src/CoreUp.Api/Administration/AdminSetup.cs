@@ -21,6 +21,7 @@ public static class AdminSetup
             client.Timeout = TimeSpan.FromSeconds(5);
         });
         builder.Services.AddScoped<AccountAccessService>();
+        builder.Services.AddScoped<PremiumRequestService>();
         builder.Services.AddScoped<IAuthorizationHandler, AdminAuthorizationHandler>();
         builder.Services.AddScoped<IAuthorizationHandler, PremiumAuthorizationHandler>();
         builder.Services.AddAuthentication().AddCookie(CookieScheme, options => {

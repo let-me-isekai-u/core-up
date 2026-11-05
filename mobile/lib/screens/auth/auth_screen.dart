@@ -32,7 +32,7 @@ class _AuthScreenState extends State<AuthScreen> {
     if (_submitting) {
       return Scaffold(
         body: SafeArea(
-          child: CoreUpChibiLoading(
+          child: CoreUpProgressLoading(
             message: _register ? 'Đang tạo tài khoản...' : 'Đang đăng nhập...',
           ),
         ),
@@ -77,13 +77,20 @@ class _AuthScreenState extends State<AuthScreen> {
                   if (!mounted) return;
                   setState(() => _submitting = false);
                   if (response == null) return;
-                  Navigator.of(context).pushReplacement(fadeRoute(
-                    response.needsEmailVerification ? const EmailVerificationScreen() : const ProfileSetupScreen(),
-                  ));
+                  Navigator.of(context).pushReplacement(
+                    fadeRoute(
+                      response.needsEmailVerification
+                          ? const EmailVerificationScreen()
+                          : const ProfileSetupScreen(),
+                    ),
+                  );
                 },
               ),
               if (!_showForm && auth.error != null)
-                Text(auth.error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                Text(
+                  auth.error!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
               const SizedBox(height: 12),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 480),
@@ -294,6 +301,7 @@ class _AuthForm extends StatelessWidget {
             _PasswordField(
               controller: password,
               label: 'Mật khẩu',
+              showStrength: register,
               error: fieldErrors['password'],
               validator: (value) {
                 if (value == null || value.isEmpty) return 'Nhập mật khẩu';
@@ -355,10 +363,12 @@ class _PasswordField extends StatefulWidget {
     required this.label,
     required this.validator,
     this.error,
+    this.showStrength = false,
   });
   final TextEditingController controller;
   final String label;
   final String? error;
+  final bool showStrength;
   final String? Function(String?) validator;
   @override
   State<_PasswordField> createState() => _PasswordFieldState();
@@ -367,22 +377,30 @@ class _PasswordField extends StatefulWidget {
 class _PasswordFieldState extends State<_PasswordField> {
   bool _hidden = true;
   @override
-  Widget build(BuildContext context) => TextFormField(
-    controller: widget.controller,
-    obscureText: _hidden,
-    autocorrect: false,
-    enableSuggestions: false,
-    validator: widget.validator,
-    decoration: InputDecoration(
-      labelText: widget.label,
-      errorText: widget.error,
-      suffixIcon: IconButton(
-        tooltip: _hidden ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
-        onPressed: () => setState(() => _hidden = !_hidden),
-        icon: Icon(
-          _hidden ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+  Widget build(BuildContext context) => Column(
+    children: [
+      TextFormField(
+        controller: widget.controller,
+        obscureText: _hidden,
+        autocorrect: false,
+        enableSuggestions: false,
+        validator: widget.validator,
+        decoration: InputDecoration(
+          labelText: widget.label,
+          errorText: widget.error,
+          suffixIcon: IconButton(
+            tooltip: _hidden ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
+            onPressed: () => setState(() => _hidden = !_hidden),
+            icon: Icon(
+              _hidden
+                  ? Icons.visibility_outlined
+                  : Icons.visibility_off_outlined,
+            ),
+          ),
         ),
       ),
-    ),
+      if (widget.showStrength)
+        CoreUpPasswordStrength(controller: widget.controller),
+    ],
   );
 }

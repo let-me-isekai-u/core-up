@@ -25,7 +25,7 @@
 </section>
 <section><h2>Mật khẩu</h2><p>@(Model.HasPassword ? "Đã có mật khẩu (lưu dạng băm, không thể xem mật khẩu gốc)." : "Tài khoản chưa có mật khẩu riêng.")</p>
 <form method="post" asp-page-handler="Recovery"><label><input asp-for="Confirm" required /> Gửi email để người dùng tự đặt lại mật khẩu.</label><button>Gửi yêu cầu reset</button></form>
-@if(Model.CanSetPassword){<p>Development: đặt mật khẩu trực tiếp. Chưa có cơ chế buộc đổi mật khẩu ở lần đăng nhập sau.</p><form method="post" asp-page-handler="Password" data-sensitive="true"><label>Mật khẩu mới <input asp-for="NewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required /></label><label><input asp-for="Confirm" required /> Tôi xác nhận đặt lại mật khẩu cho @Model.Account?.Username và thu hồi các phiên đăng nhập cũ.</label><button>Đặt lại mật khẩu</button></form>}</section>
+@if(Model.CanSetPassword){<p>Development: đặt mật khẩu trực tiếp. Chưa có cơ chế buộc đổi mật khẩu ở lần đăng nhập sau.</p><form method="post" asp-page-handler="Password" data-sensitive="true"><label>Mật khẩu mới <input asp-for="NewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required /></label><label><input asp-for="Confirm" required /> Tôi xác nhận đặt lại mật khẩu cho @Model.Account?.Username và thu hồi các phiên đăng nhập cũ.</label><meter id="password-strength" min="0" max="4" value="0" aria-label="Độ khó đoán mật khẩu"></meter><span id="password-guidance" role="status"></span><button>Đặt lại mật khẩu</button></form>}</section>
 
 <section><h2>Phương thức đăng nhập</h2><p>Password: @(Model.HasPassword ? "Có" : "Không") · Google: @(Model.HasGoogle ? "Đã liên kết" : "Chưa liên kết")</p></section>
 <section><h2>Lịch sử quản trị gần nhất</h2>
@@ -43,3 +43,13 @@ else{<div class="table"><table><thead><tr><th>UTC</th><th>Thao tác</th><th>Qu�
 <button name="operation" value="disable">Vô hiệu hóa</button> <button name="operation" value="restore">Kích hoạt lại</button>
 <button name="operation" value="sessions">Thu hồi phiên</button> <button name="operation" value="delete">Xác nhận xóa mềm</button>
 </form></section>
+
+<script>
+const passwordInput=document.getElementById('NewPassword');
+passwordInput?.addEventListener('input',()=>{
+ const value=passwordInput.value, lower=value.toLowerCase();
+ let score=value.length<8||/^(.)\1+$/.test(value)||['password','123456','qwerty','matkhau'].some(x=>lower.includes(x))?1:value.length<12?2:value.length<16?3:4;
+ document.getElementById('password-strength').value=score;
+ document.getElementById('password-guidance').textContent=['','Rất dễ đoán','Cần dài hơn','Khá hơn','Dài; vẫn cần tránh mật khẩu đã lộ'][score]+' · Bắt buộc 8–128 ký tự; ưu tiên cụm từ khó đoán.';
+});
+</script>

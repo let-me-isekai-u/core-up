@@ -1,3 +1,10 @@
 @page "/admin/requests"
 @model CoreUp.Api.Pages.Admin.RequestsModel
-<h1>Yêu cầu Premium</h1><section><h2>Chưa có luồng gửi yêu cầu Premium</h2><p>Ứng dụng hiện chưa nhận yêu cầu demo từ người dùng. Không có hàng đợi Pending/Approved/Rejected và không tạo yêu cầu từ nút thanh toán demo.</p><p>Để cấp quyền demo đã được xác nhận, mở tài khoản và chọn Cấp / gia hạn Premium demo. Thao tác sẽ ghi nhật ký quản trị.</p><a href="/admin/users">Tìm tài khoản</a></section>
+<h1>Yêu cầu Premium demo</h1><p>Chỉ có yêu cầu thực do người dùng gửi. Phê duyệt cấp quyền demo, không tạo giao dịch.</p>
+<div asp-validation-summary="All" role="alert"></div><p role="status">@Model.Notice</p>
+@foreach(var row in Model.Rows){<section><a asp-page="/Admin/User" asp-route-id="@row.UserId">@row.UserId</a><p>@row.Status · @row.CreatedAt.ToString("u") · @row.Reason</p>
+@if(row.Status=="Pending"){<form method="post" data-sensitive="true"><input type="hidden" name="id" value="@row.Id"/><label>Thời hạn <select name="days"><option>7</option><option selected>30</option><option>180</option><option>365</option></select></label><label>Lý do <textarea name="reason" maxlength="1000"></textarea></label><label><input type="checkbox" name="confirm" value="true" required/> Xác nhận quyết định cho tài khoản trên</label><button name="approve" value="true">Phê duyệt</button><button name="approve" value="false">Từ chối</button></form>}
+</section>}
+@if(Model.Rows.Count==0){<p>Chưa có yêu cầu trên trang này.</p>}
+@if(Model.PageNumber>1){<a asp-route-pageNumber="@(Model.PageNumber-1)">Trang trước</a>}
+@if(Model.Rows.Count==25){<a asp-route-pageNumber="@(Model.PageNumber+1)">Trang sau</a>}

@@ -11,6 +11,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
   final _code = TextEditingController();
   final _form = GlobalKey<FormState>();
   bool _busy = false;
+  bool _otpError = false, _otpSuccess = false;
   String? _message;
   DateTime _expires = DateTime.now().add(const Duration(minutes: 5));
   DateTime _resend = DateTime.now().add(const Duration(seconds: 60));
@@ -54,7 +55,11 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
       time.difference(DateTime.now()).inSeconds.clamp(0, 300);
   Future<void> _send() async {
     if (_busy) return;
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _otpError = false;
+      _otpSuccess = false;
+    });
     final ok = await context.read<AuthProvider>().securityAction(
       'email-verification/send',
       {},
@@ -70,6 +75,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
         _resend = DateTime.now().add(const Duration(seconds: 60));
       }
     });
+    if (ok) await _loadStatus();
   }
 
   @override
@@ -78,21 +84,22 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('XÁC MINH EMAIL')),
       body: _busy
-          ? const CoreUpChibiLoading(message: 'Đang xử lý...')
+          ? const CoreUpProgressLoading(message: 'Đang xử lý...')
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
                 Text(
                   'Nhập mã 6 chữ số gửi tới ${auth.email ?? 'email của bạn'}. Nếu chưa nhận được, hãy yêu cầu gửi lại.',
                 ),
-                Text('Mã hết hạn sau ${remaining(_expires)} giây'),
+                Text(
+                  'Thời gian dự kiến còn ${remaining(_expires)} giây; server quyết định hiệu lực mã.',
+                ),
                 Form(
                   key: _form,
-                  child: TextFormField(
+                  child: CoreUpOtpInput(
                     controller: _code,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Mã OTP'),
-                    validator: otpValidator,
+                    error: _otpError,
+                    success: _otpSuccess,
                   ),
                 ),
                 if (_message != null)
@@ -100,8 +107,13 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 PrimaryButton(
                   label: 'XÁC MINH',
                   onTap: () async {
-                    if (_busy || !_form.currentState!.validate()) return;
-                    setState(() => _busy = true);
+                    if (_busy || _otpSuccess || !_form.currentState!.validate())
+                      return;
+                    setState(() {
+                      _busy = true;
+                      _otpError = false;
+                      _otpSuccess = false;
+                    });
                     final ok = await auth.securityAction(
                       'email-verification/verify',
                       {'code': _code.text.trim()},
@@ -111,15 +123,25 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                       setState(() {
                         _busy = false;
                         _message = auth.error;
+                        _otpError = true;
                       });
                       return;
                     }
+                    setState(() {
+                      _busy = false;
+                      _otpSuccess = true;
+                      _otpError = false;
+                    });
+                    await Future<void>.delayed(
+                      MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : const Duration(milliseconds: 220),
+                    );
+                    if (!mounted) return;
                     auth.needsEmailVerification = false;
                     if (!context.mounted) return;
                     Navigator.of(context).pushAndRemoveUntil(
-                      fadeRoute(
-                        const ProfileSetupScreen(),
-                      ),
+                      fadeRoute(const ProfileSetupScreen()),
                       (_) => false,
                     );
                   },
@@ -135,9 +157,7 @@ class _EmailVerificationScreenState extends State<EmailVerificationScreen> {
                 if (!auth.verificationRequired)
                   TextButton(
                     onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-                      fadeRoute(
-                        const ProfileSetupScreen(),
-                      ),
+                      fadeRoute(const ProfileSetupScreen()),
                       (_) => false,
                     ),
                     child: const Text('Để sau'),
@@ -179,6 +199,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
   final _form = GlobalKey<FormState>();
   int _step = 0;
   bool _busy = false;
+  bool _otpError = false, _otpSuccess = false;
   String? _grant, _message;
   DateTime? _expires, _resend;
   Timer? _timer;
@@ -203,8 +224,13 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
       ? 0
       : time.difference(DateTime.now()).inSeconds.clamp(0, 300);
   Future<void> _send() async {
+    if (_busy) return;
     final auth = context.read<AuthProvider>();
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _otpError = false;
+      _otpSuccess = false;
+    });
     final ok = await auth.securityAction('forgot-password', {
       'email': _email.text.trim(),
     });
@@ -230,7 +256,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
         title: Text(_step == 2 ? 'ĐẶT LẠI MẬT KHẨU' : 'QUÊN MẬT KHẨU'),
       ),
       body: _busy
-          ? const CoreUpChibiLoading(message: 'Đang xử lý...')
+          ? const CoreUpProgressLoading(message: 'Đang xử lý...')
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
@@ -251,20 +277,20 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                               : 'Nhập email hợp lệ',
                         ),
                       if (_step == 1) ...[
-                        Text('Mã hết hạn sau ${remaining(_expires)} giây'),
-                        TextFormField(
+                        Text(
+                          'Thời gian dự kiến còn ${remaining(_expires)} giây; server quyết định hiệu lực mã.',
+                        ),
+                        CoreUpOtpInput(
                           controller: _code,
-                          keyboardType: TextInputType.number,
-                          decoration: const InputDecoration(
-                            labelText: 'Mã OTP',
-                          ),
-                          validator: otpValidator,
+                          error: _otpError,
+                          success: _otpSuccess,
                         ),
                       ],
                       if (_step == 2) ...[
                         _PasswordField(
                           controller: _password,
                           label: 'Mật khẩu mới',
+                          showStrength: true,
                           validator: newPasswordValidator,
                         ),
                         _PasswordField(
@@ -288,12 +314,17 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                       ? 'KIỂM TRA MÃ'
                       : 'ĐẶT LẠI MẬT KHẨU',
                   onTap: () async {
-                    if (_busy || !_form.currentState!.validate()) return;
+                    if (_busy || _otpSuccess || !_form.currentState!.validate())
+                      return;
                     if (_step == 0) {
                       await _send();
                       return;
                     }
-                    setState(() => _busy = true);
+                    setState(() {
+                      _busy = true;
+                      _otpError = false;
+                      _otpSuccess = false;
+                    });
                     try {
                       if (_step == 1) {
                         final r = await auth.dio.post(
@@ -305,6 +336,18 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                         );
                         if (!mounted) return;
                         setState(() {
+                          _busy = false;
+                          _otpSuccess = true;
+                          _otpError = false;
+                        });
+                        await Future<void>.delayed(
+                          MediaQuery.disableAnimationsOf(context)
+                              ? Duration.zero
+                              : const Duration(milliseconds: 220),
+                        );
+                        if (!mounted) return;
+                        setState(() {
+                          _otpSuccess = false;
                           _grant = r.data['resetToken'] as String;
                           _step = 2;
                           _busy = false;
@@ -322,6 +365,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                           setState(() {
                             _busy = false;
                             _message = auth.error;
+                            _otpError = true;
                           });
                           return;
                         }
@@ -344,6 +388,7 @@ class _PasswordRecoveryScreenState extends State<PasswordRecoveryScreen> {
                         setState(() {
                           _busy = false;
                           _message = auth.securityMessage(e);
+                          _otpError = _step == 1;
                         });
                     }
                   },
@@ -383,6 +428,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
       _confirm = TextEditingController();
   final _form = GlobalKey<FormState>();
   bool _busy = false;
+  bool _otpError = false, _otpSuccess = false;
   String? _message;
   @override
   void dispose() {
@@ -398,7 +444,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('ĐỔI MẬT KHẨU')),
       body: _busy
-          ? const CoreUpChibiLoading(message: 'Đang đổi mật khẩu...')
+          ? const CoreUpProgressLoading(message: 'Đang đổi mật khẩu...')
           : ListView(
               padding: const EdgeInsets.all(24),
               children: [
@@ -419,6 +465,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       _PasswordField(
                         controller: _password,
                         label: 'Mật khẩu mới',
+                        showStrength: true,
                         validator: (v) =>
                             newPasswordValidator(v) ??
                             (v == _current.text
@@ -441,8 +488,13 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                 PrimaryButton(
                   label: 'ĐỔI MẬT KHẨU',
                   onTap: () async {
-                    if (_busy || !_form.currentState!.validate()) return;
-                    setState(() => _busy = true);
+                    if (_busy || _otpSuccess || !_form.currentState!.validate())
+                      return;
+                    setState(() {
+                      _busy = true;
+                      _otpError = false;
+                      _otpSuccess = false;
+                    });
                     final ok = await auth.securityAction('change-password', {
                       'currentPassword': _current.text,
                       'newPassword': _password.text,
@@ -453,6 +505,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
                       setState(() {
                         _busy = false;
                         _message = auth.error;
+                        _otpError = true;
                       });
                       return;
                     }

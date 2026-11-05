@@ -1,6 +1,7 @@
 library core_up_screens;
 
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,6 +38,7 @@ part 'progress/progress_screen.dart';
 part 'profile/profile_screen.dart';
 part 'profile/google_link_dialog.dart';
 part '../widgets/common/core_widgets.dart';
+part '../widgets/common/coreup_auth_feedback.dart';
 part '../widgets/common/coreup_chibi_loading.dart';
 
 const bg = AppColors.background;

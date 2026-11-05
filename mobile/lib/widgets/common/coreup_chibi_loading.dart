@@ -27,6 +27,7 @@ class _CoreUpChibiLoadingState extends State<CoreUpChibiLoading> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) { _timer?.cancel(); _timer = null; } else if (_ready && _timer == null) { _scheduleNextFrame(); }
     if (_precacheStarted) return;
     _precacheStarted = true;
     _prepareFrames();
@@ -42,6 +43,7 @@ class _CoreUpChibiLoadingState extends State<CoreUpChibiLoading> {
   }
 
   void _scheduleNextFrame() {
+    if (!mounted || MediaQuery.disableAnimationsOf(context)) return;
     _timer = Timer(Duration(milliseconds: _durations[_index]), () {
       if (!mounted) return;
       setState(() => _index = (_index + 1) % _frames.length);
